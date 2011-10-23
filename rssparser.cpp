@@ -37,6 +37,8 @@ Larss::RssParser::RssParser(QSqlDatabase db, FeedModel *model, QObject *parent) 
     manager = new QNetworkAccessManager (this);
     manager->connect(manager, SIGNAL(finished(QNetworkReply*)),
                      this, SLOT(networkManagerReplyFinished(QNetworkReply*)));
+
+    select();
 }
 
 QVariant
@@ -151,6 +153,9 @@ Larss::RssParser::networkManagerReplyFinished(QNetworkReply *reply)
                         qDebug () << "Error inserting record";
                 }
             }
+
+            if (!submitAll())
+                qDebug () << "SubmitAll() call failed";
         }
     }
     else

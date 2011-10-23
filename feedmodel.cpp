@@ -109,6 +109,7 @@ FeedModel::rowCount(const QModelIndex &parent) const
 int
 FeedModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED (parent);
     return 1;
 }
 

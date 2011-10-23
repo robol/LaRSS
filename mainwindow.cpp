@@ -24,10 +24,10 @@ MainWindow::MainWindow(QWidget *parent) :
     rssParser = new RssParser(db, feedModel, this);
     ui->newsTableView->setModel(rssParser);
     ui->newsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->newsTableView->setColumnHidden(0, true); // ID
-    ui->newsTableView->setColumnHidden(1, true); // Feed ID
-    ui->newsTableView->setColumnHidden(3, true); // Link
-    ui->newsTableView->setColumnHidden(6, true); // Read state
+//    ui->newsTableView->setColumnHidden(0, true); // ID
+//    ui->newsTableView->setColumnHidden(1, true); // Feed ID
+//    ui->newsTableView->setColumnHidden(3, true); // Link
+//    ui->newsTableView->setColumnHidden(6, true); // Read state
 
 }
 
