@@ -12,6 +12,23 @@ using namespace Larss;
 FeedModel::FeedModel(QSqlDatabase db, QObject *parent) : QAbstractItemModel (parent)
 {
     this->db = db;
+
+    // Check that the right tables are present in the db
+    if (!db.tables().contains("categories"))
+    {
+        QSqlQuery query(db);
+        query.prepare("CREATE TABLE categories (id INTEGER PRIMARY KEY, name TEXT);");
+        if (!query.exec())
+            qDebug() << "Error while creating the categories table in the db";
+    }
+
+    if (!db.tables().contains("feeds"))
+    {
+        QSqlQuery query(db);
+        query.prepare("CREATE TABLE feeds (id INTEGER PRIMARY KEY, category INTEGER, name TEXT, url TEXT);");
+        if (!query.exec())
+            qDebug() << "Error while creating the feeds table in the db";
+    }
 }
 
 FeedModel::~FeedModel()
@@ -25,12 +42,12 @@ FeedModel::index(int row, int column, const QModelIndex &parent) const
     if (parent.internalId() == 0)
     {
         QSqlQuery query (db);
-        query.prepare("SELECT id from categories;");
+        query.prepare("SELECT id from categories ORDER by id;");
         if (query.exec())
         {
             if (!query.first())
                 return QModelIndex();
-            for (int i = 1; i < row; i++)
+            for (int i = 0; i < row; i++)
             {
                 if (!query.next ())
                     return QModelIndex();
@@ -61,6 +78,71 @@ FeedModel::index(int row, int column, const QModelIndex &parent) const
         }
         else
             return QModelIndex();
+    }
+}
+
+bool
+FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (role != Qt::EditRole)
+        return false;
+
+    QSqlQuery query(db);
+    if (index.internalId() < FEEDMODEL_MAX_CATEGORIES && index.internalId() != 0)
+    {
+        // We are trying to modify a category
+
+        switch (index.column())
+        {
+        case 0:
+            // ID
+            query.prepare("UPDATE categories SET id=:value WHERE id=:id;");
+            break;
+        case 1:
+            // Name
+            query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
+            break;
+        }
+
+        query.bindValue("value", value.toString());
+        query.bindValue("id", index.internalId());
+    }
+    else
+    {
+        // We are trying to modify a feed
+        switch (index.column())
+        {
+        case 0:
+            // ID
+            query.prepare("UPDATE categories SET id=:value WHERE id=:id;");
+            break;
+        case 1:
+            // Category
+            query.prepare("UPDATE categories SET category=:value WHERE id=:id;");
+            break;
+        case 2:
+            // Name
+            query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
+            break;
+        case 3:
+            // Url
+            query.prepare("UPDATE categories SET url=:value WHERE id=:id;");
+            break;
+        }
+
+        query.bindValue("value", value);
+        query.bindValue("id", index.internalId() - FEEDMODEL_MAX_CATEGORIES);
+    }
+
+    if (!query.exec())
+    {
+        qDebug() << "Query failed" << query.lastError() << query.executedQuery();
+        return false;
+    }
+    else
+    {
+        // Emit the datachanged signal
+        return true;
     }
 }
 
@@ -106,10 +188,38 @@ FeedModel::rowCount(const QModelIndex &parent) const
     }
 }
 
+bool
+FeedModel::addCategory(QString name)
+{
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO categories VALUES (NULL, :name);");
+    query.bindValue("name", name);
+
+    bool successful = query.exec();
+    if (successful)
+        reset();
+    return successful;
+}
+
+bool
+FeedModel::addFeed(QString name, QString url, quint32 category_id)
+{
+    QSqlQuery query(db);
+    query.prepare("INSERT INTO feeds VALUES (NULL, :category, :name, :url);");
+    query.bindValue("category", category_id);
+    query.bindValue("name", name);
+    query.bindValue("url", url);
+
+    bool successful = query.exec();
+    if (successful)
+        reset();
+    return successful;
+}
+
 int
 FeedModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED (parent);
+    Q_UNUSED(parent);
     return 1;
 }
 
@@ -123,14 +233,16 @@ FeedModel::data(const QModelIndex &index, int role) const
         if (index.internalId() < FEEDMODEL_MAX_CATEGORIES)
         {
             QSqlQuery query(db);
-            query.prepare ("SELECT name from categories WHERE id=:category;");
+            query.prepare ("SELECT id, name from categories WHERE id=:category;");
             query.bindValue("category", index.internalId());
             if (query.exec())
             {
                 if (!query.first())
                     return QVariant(QVariant::Invalid);
                 else
-                    return query.value(0).toString();
+                {
+                    return query.value(1).toString();
+                }
             }
             else
                 return QVariant(QVariant::Invalid);
@@ -138,12 +250,12 @@ FeedModel::data(const QModelIndex &index, int role) const
         else
         {
             QSqlQuery query(db);
-            query.prepare ("SELECT name from feeds WHERE id=:feed;");
+            query.prepare ("SELECT id, category, name, url from feeds WHERE id=:feed;");
             query.bindValue("feed", index.internalId() - FEEDMODEL_MAX_CATEGORIES);
             if (query.exec())
             {
                 if (query.first())
-                    return query.value(0).toString();
+                    return query.value(2).toString();
                 else
                     return QVariant(QVariant::Invalid);
             }

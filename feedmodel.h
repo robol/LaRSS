@@ -55,6 +55,23 @@ public:
      */
     QString getUrl (const QModelIndex& index);
 
+    /**
+     * @brief Method used to change the data in the database
+     */
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
+
+    /**
+     * @brief Add a category.
+     */
+    bool addCategory (QString name);
+
+    /**
+     * @brief Add a new feed in the specified category.
+     */
+    bool addFeed (QString name, QString url, quint32 category_id);
+
+
+
 signals:
 
 public slots:

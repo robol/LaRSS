@@ -167,7 +167,7 @@ Larss::RssParser::networkManagerReplyFinished(QNetworkReply *reply)
                     record.setValue("title", title);
                     record.setValue("link", link);
                     record.setValue("description", description);
-                    record.setValue("feed", nowLoading);
+                    record.setValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
 
                     if (!insertRecord(-1, record))
                         qDebug () << "Error inserting record";
@@ -222,5 +222,5 @@ void
 Larss::RssParser::selectActiveFeed(quint64 feed_id)
 {
     // Show only the news from the given feed
-    setFilter(QString("feed='%1'").arg(feed_id + FEEDMODEL_MAX_CATEGORIES));
+    setFilter(QString("feed='%1'").arg(feed_id));
 }
