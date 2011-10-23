@@ -5,31 +5,25 @@
 #include <QSqlError>
 #include <QDebug>
 #include <QStringList>
+#include <QLabel>
 
 using namespace Larss;
 
-#define FEEDMODEL_MAX_CATEGORIES 1024
-
-FeedModel::FeedModel(QObject *parent) : QAbstractItemModel (parent)
+FeedModel::FeedModel(QSqlDatabase db, QObject *parent) : QAbstractItemModel (parent)
 {
-    db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("/home/leonardo/larss.db");
-    db.open();
+    this->db = db;
 }
 
 FeedModel::~FeedModel()
 {
-    db.close();
 }
 
 
 QModelIndex
 FeedModel::index(int row, int column, const QModelIndex &parent) const
 {
-    qDebug () << "Called index for row "<< row << " and column " << column;
     if (parent.internalId() == 0)
     {
-        qDebug () << "That is a category";
         QSqlQuery query (db);
         query.prepare("SELECT id from categories;");
         if (query.exec())
@@ -41,8 +35,6 @@ FeedModel::index(int row, int column, const QModelIndex &parent) const
                 if (!query.next ())
                     return QModelIndex();
             }
-
-            qDebug () << "Creating index with id " << query.value(0).toInt();
             return createIndex(row, column, query.value(0).toInt());
         }
         else
@@ -70,18 +62,16 @@ FeedModel::index(int row, int column, const QModelIndex &parent) const
         else
             return QModelIndex();
     }
-
 }
 
 int
 FeedModel::rowCount(const QModelIndex &parent) const
 {
-    qDebug() << "Called rowCount for parent with index " << parent.internalId();
     if (!parent.isValid())
     {
         // Categories count
         QSqlQuery query(db);
-        query.prepare ("SELECT id from categories;");
+        query.prepare ("SELECT id from categories ORDER by id;");
         if (query.exec())
         {
             int row_count = 1;
@@ -109,7 +99,6 @@ FeedModel::rowCount(const QModelIndex &parent) const
             else
                 while (query.next())
                     row_count++;
-            qDebug () << "Returning " << row_count << " childs for " << " category " << parent.internalId();
             return row_count;
         }
         else
@@ -126,7 +115,6 @@ FeedModel::columnCount(const QModelIndex &parent) const
 QVariant
 FeedModel::data(const QModelIndex &index, int role) const
 {
-    qDebug () << "Called data for index" << index.internalId();
     if (role == Qt::DisplayRole)
     {
         if (index.internalId() == 0)
@@ -202,6 +190,7 @@ FeedModel::parent(const QModelIndex &child) const
     }
     else
     {
+        quint32 category_id;
         // We have a feed here, that actually has a real parent.
         // We need to get the ID of the category
         id -= FEEDMODEL_MAX_CATEGORIES;
@@ -210,12 +199,66 @@ FeedModel::parent(const QModelIndex &child) const
         query.bindValue("id", id);
         if (query.exec())
         {
-            query.first ();
-            qDebug () << "Parent of " << id << " is " << query.boundValue(0);
-            return createIndex (row, 1, query.boundValue(0).toInt());
+            if (!query.first ())
+                return QModelIndex();
+            else
+            {
+                category_id = query.value(0).toInt();
+
+                // We need to get the position of the feed in the category
+                query.prepare("SELECT id from feeds WHERE category=:category;");
+                query.bindValue("category", category_id);
+                if (query.exec())
+                {
+                    row = 1;
+                    if (!query.first())
+                        return QModelIndex();
+                    else
+                    {
+                        while (query.next())
+                            row++;
+                        return createIndex(row, 1, category_id);
+                    }
+                }
+                else
+                    return QModelIndex();
+            }
         }
         else
             return QModelIndex();
+    }
+}
+
+QVariant
+FeedModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    // We have a header data only for the first column, horizontal mode.
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal && section == 0)
+        return tr("Feed");
+    else
+        return QVariant ();
+}
+
+QString
+FeedModel::getUrl(const QModelIndex &index)
+{
+    quint64 id = index.internalId();
+    if (id < FEEDMODEL_MAX_CATEGORIES)
+        return "";
+    else
+    {
+        QSqlQuery query(db);
+        query.prepare("SELECT url from feeds WHERE id=:id;");
+        query.bindValue("id", id - FEEDMODEL_MAX_CATEGORIES);
+        if (query.exec())
+        {
+            if (query.first())
+                return query.value(0).toString();
+            else
+                return "";
+        }
+        else
+            return "";
     }
 }
 

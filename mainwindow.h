@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include "rssparser.h"
+#include "feedmodel.h"
+#include <QSqlDatabase>
 
 namespace Ui {
     class MainWindow;
@@ -21,9 +23,15 @@ public:
 private slots:
     void on_actionExit_activated();
 
+    void on_feedTreeView_clicked(const QModelIndex &index);
+
 private:
     Ui::MainWindow *ui;
     void do_exit();
+
+    QSqlDatabase db;
+    FeedModel *feedModel;
+    RssParser *rssParser;
 };
 
 }

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui webkit sql
+QT       += core gui webkit sql network xml
 
 TARGET = Larss
 TEMPLATE = app
@@ -12,9 +12,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    feedmodel.cpp
+    feedmodel.cpp \
+    rssparser.cpp
 
 HEADERS  += mainwindow.h \
-    feedmodel.h
+    feedmodel.h \
+    rssparser.h
 
 FORMS    += mainwindow.ui

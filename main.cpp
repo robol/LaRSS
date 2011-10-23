@@ -3,9 +3,10 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    Larss::MainWindow w;
-    w.show();
+    QApplication lars_application(argc, argv);
+    Larss::MainWindow main_window;
 
-    return a.exec();
+    main_window.show();
+
+    return lars_application.exec();
 }

@@ -25,7 +25,7 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QListView" name="newsListView"/>
+       <widget class="QTableView" name="newsTableView"/>
        <widget class="QWebView" name="webView">
         <property name="url">
          <url>
