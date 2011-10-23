@@ -51,7 +51,7 @@ FeedModel::index(int row, int column, const QModelIndex &parent) const
                 return QModelIndex();
             else
             {
-                for(int i = 1; i < row; i++)
+                for(int i = 0; i < row; i++)
                 {
                     if (!query.next())
                         return QModelIndex();

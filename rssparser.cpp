@@ -207,3 +207,20 @@ Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
     QModelIndex read_index = createIndex(index.row(), 6, index.internalPointer());
     setData(read_index, read ? 1 : 0);
 }
+
+quint64
+Larss::RssParser::getFeed(const QModelIndex &index)
+{
+    quint64 id = index.internalId();
+    if (id < FEEDMODEL_MAX_CATEGORIES)
+        return 0;
+    else
+        return (id - FEEDMODEL_MAX_CATEGORIES);
+}
+
+void
+Larss::RssParser::selectActiveFeed(quint64 feed_id)
+{
+    // Show only the news from the given feed
+    setFilter(QString("feed='%1'").arg(feed_id + FEEDMODEL_MAX_CATEGORIES));
+}
