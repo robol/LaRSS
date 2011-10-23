@@ -64,6 +64,8 @@ FeedPoller::stopPolling ()
 void
 FeedPoller::queueWork(const QModelIndex &index)
 {
+    if (index.internalId() < FEEDMODEL_MAX_CATEGORIES)
+        return;
     workQueue->append(index);
 }
 
@@ -76,6 +78,19 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
     QDomDocument doc;
     if (doc.setContent(rssContent->value(nowLoading)))
     {
+        // Try to catch other news_feed with the same link, so preload all of them.
+        QSqlQuery query(parser->db);
+        query.prepare ("SELECT link from news WHERE feed=:feed");
+        query.bindValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
+        if (!query.exec ())
+            return;
+        QStringList links;
+        query.first();
+        do
+        {
+            links.append(query.value(0).toString());
+        } while (query.next());
+
         QDomElement doc_el = doc.documentElement();
         QDomNodeList items = doc_el.elementsByTagName("item");
 
@@ -94,27 +109,19 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             // QString guid = element.elementsByTagName("guid").item(0).firstChild().nodeValue();
             // QString pubDate = element.elementsByTagName("pubDate").item(0).firstChild().nodeValue();
 
-            // Try to catch other news_feed with the same link
-            QSqlQuery query(parser->db);
-            query.prepare ("SELECT id from news WHERE feed=:feed AND link=:link;");
-            query.bindValue("feed", nowLoading);
-            query.bindValue("link", link);
-            if (query.exec())
+            if (!links.contains(link))
             {
-                if (!query.first())
-                {
-                    // That means that no results were found, so let's insert this one.
-                    QSqlRecord record = parser->record();
-                    record.setValue("time", 0);
-                    record.setValue("read", 0);
-                    record.setValue("title", title);
-                    record.setValue("link", link);
-                    record.setValue("description", description);
-                    record.setValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
+                // That means that no results were found, so let's insert this one.
+                QSqlRecord record = parser->record();
+                record.setValue("time", 0);
+                record.setValue("read", 0);
+                record.setValue("title", title);
+                record.setValue("link", link);
+                record.setValue("description", description);
+                record.setValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
 
-                    if (!parser->insertRecord(-1, record))
-                        qDebug () << "Error inserting record";
-                }
+                if (!parser->insertRecord(-1, record))
+                    qDebug () << "Error inserting record";
             }
         }
     }
