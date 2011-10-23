@@ -24,11 +24,11 @@ MainWindow::MainWindow(QWidget *parent) :
     rssParser = new RssParser(db, feedModel, this);
     ui->newsTableView->setModel(rssParser);
     ui->newsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-//    ui->newsTableView->setColumnHidden(0, true); // ID
-//    ui->newsTableView->setColumnHidden(1, true); // Feed ID
-//    ui->newsTableView->setColumnHidden(3, true); // Link
-//    ui->newsTableView->setColumnHidden(6, true); // Read state
-
+    ui->newsTableView->setColumnHidden(0, true); // ID
+    ui->newsTableView->setColumnHidden(1, true); // Feed ID
+    ui->newsTableView->setColumnHidden(3, true); // Link
+    ui->newsTableView->setColumnHidden(6, true); // Read state
+    ui->newsTableView->verticalHeader()->setHidden(true);
 }
 
 MainWindow::~MainWindow()
@@ -53,4 +53,16 @@ void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
 {
     // Trigger refresh of selected item
     rssParser->loadItem(index);
+}
+
+void Larss::MainWindow::on_newsTableView_clicked(const QModelIndex &index)
+{
+    // A row got activated, so open it in the webview.
+    QString link = rssParser->getLink(index);
+    ui->webView->load(link);
+    qDebug () << "Loading " << link;
+
+    // And then mark it as read
+    rssParser->setReadStatus(index, true);
+    ui->newsTableView->selectRow(index.row());
 }

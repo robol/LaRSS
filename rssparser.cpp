@@ -3,6 +3,8 @@
 #include <QtXml>
 #include <QtSql>
 #include <QtNetwork>
+#include <QtGui>
+#include <QtCore>
 
 using namespace Larss;
 
@@ -23,7 +25,7 @@ Larss::RssParser::RssParser(QSqlDatabase db, FeedModel *model, QObject *parent) 
     setTable("news");
 
     // Select manual submit so user cannot modify content directly
-    setEditStrategy(QSqlTableModel::OnManualSubmit);
+    setEditStrategy(QSqlTableModel::OnRowChange);
 
     // Set the source to an empty string, that means no source
     rssContent = new QHash<quint32, QString>();
@@ -83,6 +85,24 @@ Larss::RssParser::~RssParser()
     delete manager;
     delete rssContent;
     delete workQueue;
+}
+
+QVariant
+Larss::RssParser::data(const QModelIndex &idx, int role) const
+{
+    if (role == Qt::FontRole)
+    {
+        // Get default font
+        QFont default_font = QSqlTableModel::data(idx, role).toString();
+
+        // Check if this news is read or not
+        QSqlRecord record = this->record(idx.row());
+        if (record.value("read") == 0)
+            default_font.setBold(true);
+        return default_font;
+    }
+    // Call the default implementaton in almost every case
+    return QSqlTableModel::data(idx, role);
 }
 
 void
@@ -153,9 +173,6 @@ Larss::RssParser::networkManagerReplyFinished(QNetworkReply *reply)
                         qDebug () << "Error inserting record";
                 }
             }
-
-            if (!submitAll())
-                qDebug () << "SubmitAll() call failed";
         }
     }
     else
@@ -175,4 +192,18 @@ Larss::RssParser::networkManagerReplyFinished(QNetworkReply *reply)
         nowLoading = next_item.internalId();
         manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
     }
+}
+
+QString
+Larss::RssParser::getLink(const QModelIndex &index)
+{
+    QSqlRecord record = this->record(index.row());
+    return record.value("link").toString();
+}
+
+void
+Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
+{
+    QModelIndex read_index = createIndex(index.row(), 6, index.internalPointer());
+    setData(read_index, read ? 1 : 0);
 }

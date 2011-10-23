@@ -34,6 +34,22 @@ namespace Larss {
          */
         QVariant headerData (int section, Qt::Orientation orientation, int role) const;
 
+        /**
+         * @brief Get the link associated with a given ModelIndex.
+         */
+        QString getLink (const QModelIndex& index);
+
+        /**
+         * @brief Set the read status on a news.
+         */
+        void setReadStatus (const QModelIndex& index, bool read);
+
+        /**
+         * @brief Reimplement data to make unread post bold.
+         */
+        QVariant data(const QModelIndex &idx, int role) const;
+
+
     signals:
 
     public slots:
