@@ -33,7 +33,7 @@
          <enum>Qt::DashLine</enum>
         </property>
         <attribute name="verticalHeaderStretchLastSection">
-         <bool>true</bool>
+         <bool>false</bool>
         </attribute>
        </widget>
        <widget class="QFrame" name="frame">
