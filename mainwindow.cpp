@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->newsTableView->setColumnHidden(4, true); // Description
     ui->newsTableView->setColumnHidden(5, true); // Time
     ui->newsTableView->setColumnHidden(6, true); // Read state
+    ui->newsTableView->setEditTriggers(QTableView::NoEditTriggers);
     ui->newsTableView->verticalHeader()->setHidden(true);
     ui->newsTableView->horizontalHeader()->setStretchLastSection(false);
     ui->newsTableView->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
@@ -47,6 +48,7 @@ MainWindow::~MainWindow()
 void MainWindow::do_exit()
 {
     poller->stopPolling();
+    poller->wait();
     QApplication::exit();
 }
 
@@ -78,7 +80,8 @@ void Larss::MainWindow::on_newsTableView_clicked(const QModelIndex &index)
 
     // A row got activated, so open it in the webview.
     QString link = rssParser->getLink(index);
-    ui->webView->load(link);
+    // ui->webView->load(link);
+    ui->webView->setHtml(rssParser->getDescription(index));
 
     // And then mark it as read
     rssParser->setReadStatus(index, true);

@@ -112,6 +112,13 @@ Larss::RssParser::getFeed(const QModelIndex &index)
         return (id - FEEDMODEL_MAX_CATEGORIES);
 }
 
+QString
+Larss::RssParser::getDescription(const QModelIndex &index)
+{
+    QModelIndex description_index = createIndex(index.row(), 4, index.internalPointer());
+    return data(description_index, Qt::DisplayRole).toString();
+}
+
 void
 Larss::RssParser::selectActiveFeed(quint64 feed_id)
 {

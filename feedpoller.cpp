@@ -59,6 +59,7 @@ void
 FeedPoller::stopPolling ()
 {
     poll_active = false;
+    QThread::exit();
 }
 
 void
@@ -72,7 +73,9 @@ FeedPoller::queueWork(const QModelIndex &index)
 void
 FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
 {
-    rssContent->insert (nowLoading, reply->readAll());
+    // Assume that the string is UTF-8 encoded. This is likely to be
+    // true, but I should check it in some way.
+    rssContent->insert (nowLoading, QString::fromUtf8(reply->readAll()));
 
     // Now update the database with the new data obtained.
     QDomDocument doc;
