@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QAbstractItemModel>
 #include <QSqlDatabase>
+#include <QtXml>
 
 namespace Larss {
 
@@ -69,8 +70,6 @@ public:
      * @brief Add a new feed in the specified category.
      */
     bool addFeed (QString name, QString url, quint32 category_id);
-
-
 
 signals:
 

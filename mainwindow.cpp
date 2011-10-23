@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->newsTableView->setColumnHidden(4, true); // Description
     ui->newsTableView->setColumnHidden(6, true); // Read state
     ui->newsTableView->verticalHeader()->setHidden(true);
+
+    poller = new FeedPoller (this, rssParser, feedModel);
+    poller->start();
 }
 
 MainWindow::~MainWindow()
@@ -40,7 +43,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::do_exit()
 {
-    // Some cleanup will be need here in the future
+    poller->stopPolling();
     QApplication::exit();
 }
 
@@ -53,7 +56,7 @@ void MainWindow::on_actionExit_activated()
 void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
 {
     // Trigger refresh of selected item
-    rssParser->loadItem(index);
+    poller->queueWork(index);
 
     // Set the active filter
     quint64 feed_id;

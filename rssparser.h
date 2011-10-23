@@ -24,11 +24,6 @@ namespace Larss {
         ~RssParser();
 
         /**
-         * @brief Reload the feed from a given NewsFeed.
-         */
-        void loadItem (const QModelIndex& index);
-
-        /**
          * @brief Function that tells the views that use this model
          * what to display in the title of the columns.
          */
@@ -61,50 +56,21 @@ namespace Larss {
          */
         void selectActiveFeed (quint64 feed_id);
 
-
-    signals:
-
-    public slots:
-        void networkManagerReplyFinished (QNetworkReply* reply);
-
-    private:
         /**
          * @brief Database where all the news will be loaded and saved.
          */
         QSqlDatabase db;
 
+    signals:
+
+    public slots:
+
+    private:
+
         /**
-         * @brief The url of the current rss feed.
+         * @brief The FeedModel
          */
         FeedModel *model;
-
-        /**
-         * @brief The content of the rss loaded from the various
-         * items in the feedmodel.
-         */
-        QHash<quint32, QString> *rssContent;
-
-        /**
-         * @brief The NetworkAccessManager that will be used to retrieve
-         * the data from sourceUrl.
-         */
-        QNetworkAccessManager *manager;
-
-        /**
-         * @brief An index of the RSS that is currently being loaded, or 0
-         * if there is nothing in the queue.
-         */
-        quint32 nowLoading;
-
-        /**
-         * @brie A pointer to the active news feed.
-         */
-        quint32 activeItem;
-
-        /**
-         * @brief Queue of item that needs to be refreshed.
-         */
-        QList<QModelIndex> *workQueue;
     };
 
 }

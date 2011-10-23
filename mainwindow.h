@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "rssparser.h"
 #include "feedmodel.h"
+#include "feedpoller.h"
 #include <QSqlDatabase>
 
 namespace Ui {
@@ -34,6 +35,7 @@ private:
     QSqlDatabase db;
     FeedModel *feedModel;
     RssParser *rssParser;
+    FeedPoller *poller;
 };
 
 }

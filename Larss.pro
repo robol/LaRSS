@@ -13,10 +13,12 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     feedmodel.cpp \
-    rssparser.cpp
+    rssparser.cpp \
+    feedpoller.cpp
 
 HEADERS  += mainwindow.h \
     feedmodel.h \
-    rssparser.h
+    rssparser.h \
+    feedpoller.h
 
 FORMS    += mainwindow.ui
