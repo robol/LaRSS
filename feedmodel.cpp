@@ -88,49 +88,19 @@ FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
         return false;
 
     QSqlQuery query(db);
+
     if (index.internalId() < FEEDMODEL_MAX_CATEGORIES && index.internalId() != 0)
     {
         // We are trying to modify a category
-
-        switch (index.column())
-        {
-        case 0:
-            // ID
-            query.prepare("UPDATE categories SET id=:value WHERE id=:id;");
-            break;
-        case 1:
-            // Name
-            query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
-            break;
-        }
-
+        query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
         query.bindValue("value", value.toString());
         query.bindValue("id", index.internalId());
     }
     else
     {
         // We are trying to modify a feed
-        switch (index.column())
-        {
-        case 0:
-            // ID
-            query.prepare("UPDATE categories SET id=:value WHERE id=:id;");
-            break;
-        case 1:
-            // Category
-            query.prepare("UPDATE categories SET category=:value WHERE id=:id;");
-            break;
-        case 2:
-            // Name
-            query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
-            break;
-        case 3:
-            // Url
-            query.prepare("UPDATE categories SET url=:value WHERE id=:id;");
-            break;
-        }
-
-        query.bindValue("value", value);
+        query.prepare("UPDATE feeds SET name=:value WHERE id=:id;");
+        query.bindValue("value", value.toString());
         query.bindValue("id", index.internalId() - FEEDMODEL_MAX_CATEGORIES);
     }
 
@@ -142,8 +112,16 @@ FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
     else
     {
         // Emit the datachanged signal
+        dataChanged(index, index);
         return true;
     }
+}
+
+Qt::ItemFlags
+FeedModel::flags(const QModelIndex &index) const
+{
+    Q_UNUSED(index);
+    return (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 }
 
 int

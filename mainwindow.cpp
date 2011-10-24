@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Load feedModel that will wrap the SQLite database
     feedModel = new FeedModel(db, this);
     ui->feedTreeView->setModel(feedModel);
+    ui->feedTreeView->setEditTriggers(QTreeView::DoubleClicked);
 
     // Load the RSSParser, hiding the unnecessary columns
     rssParser = new RssParser(db, feedModel, this);

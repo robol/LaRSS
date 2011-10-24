@@ -47,6 +47,11 @@ public:
     QModelIndex parent(const QModelIndex &child) const;
 
     /**
+     * @brief Return the flags for the given item.
+     */
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+
+    /**
      * @brief Return the data to be inserted in the column header of the treeview.
      */
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
