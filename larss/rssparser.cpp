@@ -27,6 +27,9 @@ Larss::RssParser::RssParser(QSqlDatabase db, FeedModel *model, QObject *parent) 
     // Select manual submit so user cannot modify content directly
     setEditStrategy(QSqlTableModel::OnManualSubmit);
     this->model = model;
+
+    // Make this sorted in different time
+    this->sort(6, Qt::DescendingOrder);
     select();
 }
 
@@ -58,7 +61,7 @@ Larss::RssParser::headerData(int section, Qt::Orientation orientation, int role)
                 return tr("Content");
                 break;
             case 6:
-                return tr("Time");
+                return tr("Date");
                 break;
             case 7:
                 return tr("Read");
@@ -87,6 +90,13 @@ Larss::RssParser::data(const QModelIndex &idx, int role) const
             default_font.setBold(true);
         return default_font;
     }
+
+    // Manage a nice rendering of Time
+    if (role == Qt::DisplayRole && idx.column() == 6)
+    {
+        return (QDateTime::fromTime_t(QSqlTableModel::data(idx, role).toInt()).toString());
+    }
+
     // Call the default implementaton in almost every case
     return QSqlTableModel::data(idx, role);
 }

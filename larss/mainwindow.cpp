@@ -30,13 +30,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->newsTableView->setColumnHidden(3, true); // Link
     ui->newsTableView->setColumnHidden(4, true); // Description
     ui->newsTableView->setColumnHidden(5, true); // Content
-    ui->newsTableView->setColumnHidden(6, true); // Time
+    // ui->newsTableView->setColumnHidden(6, true); // Time
     ui->newsTableView->setColumnHidden(7, true); // Read state
     ui->newsTableView->setEditTriggers(QTableView::NoEditTriggers);
     ui->newsTableView->verticalHeader()->setHidden(true);
-    ui->newsTableView->horizontalHeader()->setHidden(true);
     ui->newsTableView->horizontalHeader()->setStretchLastSection(false);
     ui->newsTableView->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
+    ui->newsTableView->horizontalHeader()->setResizeMode(6, QHeaderView::ResizeToContents);
 
     // Show only unread elements
     rssParser->setFilter("read=0");

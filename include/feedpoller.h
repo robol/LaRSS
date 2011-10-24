@@ -68,6 +68,8 @@ namespace Larss {
          */
         void run();
 
+        QDateTime pubDateToDateTime (QString pubDate);
+
     };
 }
 

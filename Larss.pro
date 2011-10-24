@@ -22,3 +22,5 @@ HEADERS  += include/mainwindow.h \
     include/feedpoller.h
 
 FORMS    += ui/mainwindow.ui
+
+INCLUDEPATH += ./include
