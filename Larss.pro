@@ -15,15 +15,18 @@ SOURCES += larss/main.cpp\
     larss/feedmodel.cpp \
     larss/rssparser.cpp \
     larss/feedpoller.cpp \
-    larss/editfeeddialog.cpp
+    larss/editfeeddialog.cpp \
+    larss/editcategorydialog.cpp
 
 HEADERS  += include/mainwindow.h \
     include/feedmodel.h \
     include/rssparser.h \
     include/feedpoller.h \
-    include/editfeeddialog.h
+    include/editfeeddialog.h \
+    include/editcategorydialog.h
 
 FORMS    += ui/mainwindow.ui \
-    ui/editfeeddialog.ui
+    ui/editfeeddialog.ui \
+    ui/editcategorydialog.ui
 
 INCLUDEPATH += ./include

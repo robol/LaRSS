@@ -32,6 +32,8 @@ private slots:
 
     void on_actionAdd_Feed_triggered();
 
+    void on_actionAdd_Category_triggered();
+
 private:
     Ui::MainWindow *ui;
     void do_exit();

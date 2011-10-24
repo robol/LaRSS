@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "editfeeddialog.h"
+#include "editcategorydialog.h"
 #include <QDebug>
 #include <QtGui>
 
@@ -112,8 +113,16 @@ void Larss::MainWindow::on_actionAdd_Feed_triggered()
     Larss::EditFeedDialog dialog(this, feedModel);
     if (dialog.exec() == QDialog::Accepted)
     {
-        qDebug() << "Adding new feed";
         feedModel->addFeed(dialog.getFeedName(),
                            dialog.getFeedUrl(), dialog.getCategoryId());
+    }
+}
+
+void Larss::MainWindow::on_actionAdd_Category_triggered()
+{
+    Larss::EditCategoryDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        feedModel->addCategory(dialog.getCategoryName());
     }
 }

@@ -98,6 +98,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionAdd_Category"/>
     <addaction name="actionAdd_Feed"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -113,6 +114,11 @@
   <action name="actionAdd_Feed">
    <property name="text">
     <string>Add Feed</string>
+   </property>
+  </action>
+  <action name="actionAdd_Category">
+   <property name="text">
+    <string>Add Category</string>
    </property>
   </action>
  </widget>
