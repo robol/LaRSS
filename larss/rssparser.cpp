@@ -115,6 +115,7 @@ Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
     setData(read_index, read ? 1 : 0);
     if (!submitAll())
         qDebug() << "Error while setting the read flag";
+    dataChanged (index, index);
 }
 
 quint64
@@ -139,6 +140,25 @@ Larss::RssParser::getTitle(const QModelIndex &index)
 {
     QModelIndex title_index = createIndex(index.row(), 2, index.internalPointer());
     return data(title_index, Qt::DisplayRole).toString();
+}
+
+quint32
+Larss::RssParser::getUnreadCount(const QModelIndex &index)
+{
+    quint64 feedId = getFeed(index);
+    QSqlQuery query(db);
+    query.prepare ("SELECT id from news WHERE read=0 AND feed=:feed;");
+    query.bindValue("feed", feedId);
+    if (query.exec())
+    {
+        quint32 count = 1;
+        if (!query.first())
+            return 0;
+        while (query.next())
+            count++;
+        return count;
+    }
+    return 0;
 }
 
 void

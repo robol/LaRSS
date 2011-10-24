@@ -52,6 +52,12 @@ namespace Larss {
         QString getTitle (const QModelIndex& index);
 
         /**
+         * @brief Get the number of unread post for the feed pointed by
+         * the given QModelIndex.
+         */
+        quint32 getUnreadCount (const QModelIndex& index);
+
+        /**
          * @brief Set the read status on a news.
          */
         void setReadStatus (const QModelIndex& index, bool read);

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "editfeeddialog.h"
 #include "editcategorydialog.h"
+#include "feedproxymodel.h"
 #include <QDebug>
 #include <QtGui>
 
@@ -24,10 +25,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Load feedModel that will wrap the SQLite database
     feedModel = new FeedModel(db, this);
-    ui->feedTreeView->setModel(feedModel);
+    rssParser = new RssParser(db, feedModel, this);
+
+    FeedProxyModel *proxyModel = new FeedProxyModel(this);
+    proxyModel->setModel(feedModel);
+    proxyModel->setParser(rssParser);
+
+    ui->feedTreeView->setModel(proxyModel);
 
     // Load the RSSParser, hiding the unnecessary columns
-    rssParser = new RssParser(db, feedModel, this);
     ui->newsTableView->setModel(rssParser);
     ui->newsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->newsTableView->setColumnHidden(0, true); // ID
