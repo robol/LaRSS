@@ -16,7 +16,7 @@ Larss::RssParser::RssParser(QSqlDatabase db, FeedModel *model, QObject *parent) 
     {
         qDebug () << "Creating table news that is not in database...";
         QSqlQuery query(db);
-        query.prepare("CREATE TABLE news (id INTEGER PRIMARY KEY, feed INTEGER, title TEXT, link TEXT, description TEXT, time INTEGER, read INTEGER);");
+        query.prepare("CREATE TABLE news (id INTEGER PRIMARY KEY, feed INTEGER, title TEXT, link TEXT, description TEXT, content TEXT, time INTEGER, read INTEGER);");
         if (!query.exec())
             qDebug () << "Error occurred while creating the database:" << query.lastError();
     }
@@ -25,7 +25,7 @@ Larss::RssParser::RssParser(QSqlDatabase db, FeedModel *model, QObject *parent) 
     setTable("news");
 
     // Select manual submit so user cannot modify content directly
-    setEditStrategy(QSqlTableModel::OnRowChange);
+    setEditStrategy(QSqlTableModel::OnManualSubmit);
     this->model = model;
     select();
 }
@@ -55,9 +55,12 @@ Larss::RssParser::headerData(int section, Qt::Orientation orientation, int role)
                 return tr("Description");
                 break;
             case 5:
-                return tr("Time");
+                return tr("Content");
                 break;
             case 6:
+                return tr("Time");
+                break;
+            case 7:
                 return tr("Read");
             }
         }
@@ -98,8 +101,10 @@ Larss::RssParser::getLink(const QModelIndex &index)
 void
 Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
 {
-    QModelIndex read_index = createIndex(index.row(), 6, index.internalPointer());
+    QModelIndex read_index = createIndex(index.row(), 7, index.internalPointer());
     setData(read_index, read ? 1 : 0);
+    if (!submitAll())
+        qDebug() << "Error while setting the read flag";
 }
 
 quint64
@@ -113,10 +118,17 @@ Larss::RssParser::getFeed(const QModelIndex &index)
 }
 
 QString
-Larss::RssParser::getDescription(const QModelIndex &index)
+Larss::RssParser::getContent(const QModelIndex &index)
 {
-    QModelIndex description_index = createIndex(index.row(), 4, index.internalPointer());
+    QModelIndex description_index = createIndex(index.row(), 5, index.internalPointer());
     return data(description_index, Qt::DisplayRole).toString();
+}
+
+QString
+Larss::RssParser::getTitle(const QModelIndex &index)
+{
+    QModelIndex title_index = createIndex(index.row(), 2, index.internalPointer());
+    return data(title_index, Qt::DisplayRole).toString();
 }
 
 void

@@ -42,9 +42,14 @@ namespace Larss {
         quint64 getFeed (const QModelIndex& index);
 
         /**
-         * @brief Get the description associated with the feed.
+         * @brief Get the content associated with the feed.
          */
-        QString getDescription (const QModelIndex& index);
+        QString getContent (const QModelIndex& index);
+
+        /**
+         * @brief Get the title of a news pointed by index
+         */
+        QString getTitle (const QModelIndex& index);
 
         /**
          * @brief Set the read status on a news.

@@ -28,12 +28,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->newsTableView->setColumnHidden(1, true); // Feed ID
     ui->newsTableView->setColumnHidden(3, true); // Link
     ui->newsTableView->setColumnHidden(4, true); // Description
-    ui->newsTableView->setColumnHidden(5, true); // Time
-    ui->newsTableView->setColumnHidden(6, true); // Read state
+    ui->newsTableView->setColumnHidden(5, true); // Content
+    ui->newsTableView->setColumnHidden(6, true); // Time
+    ui->newsTableView->setColumnHidden(7, true); // Read state
     ui->newsTableView->setEditTriggers(QTableView::NoEditTriggers);
     ui->newsTableView->verticalHeader()->setHidden(true);
+    ui->newsTableView->horizontalHeader()->setHidden(true);
     ui->newsTableView->horizontalHeader()->setStretchLastSection(false);
     ui->newsTableView->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
+
+    // Show only unread elements
+    rssParser->setFilter("read=0");
 
     poller = new FeedPoller (this, rssParser, feedModel);
     poller->start();
@@ -68,6 +73,9 @@ void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
     if ((feed_id = rssParser->getFeed (index)))
     {
         rssParser->selectActiveFeed(feed_id);
+
+        // Reset the title
+        ui->webViewTitleLabel->setText("");
     }
 
 }
@@ -79,11 +87,17 @@ void Larss::MainWindow::on_newsTableView_clicked(const QModelIndex &index)
     quint32 row_number = index.row();
 
     // A row got activated, so open it in the webview.
-    QString link = rssParser->getLink(index);
-    // ui->webView->load(link);
-    ui->webView->setHtml(rssParser->getDescription(index));
+    ui->webView->setHtml(rssParser->getContent(index));
+
+    // Select the right title
+    ui->webViewTitleLabel->setText(QString("<b>%1</b>").arg(rssParser->getTitle (index)));
 
     // And then mark it as read
     rssParser->setReadStatus(index, true);
     ui->newsTableView->selectRow(row_number);
+}
+
+void Larss::MainWindow::on_newsTableView_activated(const QModelIndex &index)
+{
+    on_newsTableView_clicked(index);
 }

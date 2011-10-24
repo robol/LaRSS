@@ -28,6 +28,8 @@ private slots:
 
     void on_newsTableView_clicked(const QModelIndex &index);
 
+    void on_newsTableView_activated(const QModelIndex &index);
+
 private:
     Ui::MainWindow *ui;
     void do_exit();

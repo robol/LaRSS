@@ -29,7 +29,7 @@ FeedPoller::run()
 
     // Create the timer that will call the function every second.
     QTimer *timer = new QTimer ();
-    timer->setInterval(800);
+    timer->setInterval(1000);
     timer->connect(timer, SIGNAL(timeout()),
                    this, SLOT(poll()));
     timer->start();
@@ -87,12 +87,14 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
         query.bindValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
         if (!query.exec ())
             return;
+
         QStringList links;
-        query.first();
-        do
+        if (query.first())
         {
             links.append(query.value(0).toString());
-        } while (query.next());
+            while (query.next())
+                links.append(query.value(0).toString());
+        }
 
         QDomElement doc_el = doc.documentElement();
         QDomNodeList items = doc_el.elementsByTagName("item");
@@ -107,6 +109,7 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             QString link = element.elementsByTagName("link").item(0).firstChild().nodeValue();
             QString title = element.elementsByTagName("title").item(0).firstChild().nodeValue();
             QString description = element.elementsByTagName("description").item(0).firstChild().nodeValue();
+            QString content = element.elementsByTagName("content:encoded").item(0).firstChild().nodeValue();
 
             // We should enable this for RSS 2.0
             // QString guid = element.elementsByTagName("guid").item(0).firstChild().nodeValue();
@@ -121,12 +124,16 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
                 record.setValue("title", title);
                 record.setValue("link", link);
                 record.setValue("description", description);
+                record.setValue("content", content);
                 record.setValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
 
                 if (!parser->insertRecord(-1, record))
                     qDebug () << "Error inserting record";
             }
         }
+
+        if (!parser->submitAll())
+            qDebug() << "Error submitting new data";
     }
     else
         qDebug () << "Error parsing the document";
