@@ -98,6 +98,8 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionAdd_Feed"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -106,6 +108,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionAdd_Feed">
+   <property name="text">
+    <string>Add Feed</string>
    </property>
   </action>
  </widget>

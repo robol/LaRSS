@@ -191,6 +191,11 @@ FeedModel::addFeed(QString name, QString url, quint32 category_id)
     bool successful = query.exec();
     if (successful)
         reset();
+    else
+    {
+        qDebug() << "Query failed: " << query.executedQuery() << query.lastError();
+    }
+
     return successful;
 }
 

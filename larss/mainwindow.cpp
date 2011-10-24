@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "editfeeddialog.h"
 #include <QDebug>
 #include <QtGui>
 
@@ -19,7 +20,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // Load feedModel that will wrap the SQLite database
     feedModel = new FeedModel(db, this);
     ui->feedTreeView->setModel(feedModel);
-    ui->feedTreeView->setEditTriggers(QTreeView::DoubleClicked);
 
     // Load the RSSParser, hiding the unnecessary columns
     rssParser = new RssParser(db, feedModel, this);
@@ -101,4 +101,15 @@ void Larss::MainWindow::on_newsTableView_clicked(const QModelIndex &index)
 void Larss::MainWindow::on_newsTableView_activated(const QModelIndex &index)
 {
     on_newsTableView_clicked(index);
+}
+
+void Larss::MainWindow::on_actionAdd_Feed_triggered()
+{
+    Larss::EditFeedDialog dialog(this, feedModel);
+    if (dialog.exec() == QDialog::Accepted)
+    {
+        qDebug() << "Adding new feed";
+        feedModel->addFeed(dialog.getFeedName(),
+                           dialog.getFeedUrl(), dialog.getCategoryId());
+    }
 }

@@ -111,7 +111,9 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             QString link = element.elementsByTagName("link").item(0).firstChild().nodeValue();
             QString title = element.elementsByTagName("title").item(0).firstChild().nodeValue();
             QString description = element.elementsByTagName("description").item(0).firstChild().nodeValue();
-            QString content = element.elementsByTagName("content:encoded").item(0).firstChild().nodeValue();
+            QString content = description;
+            if (element.elementsByTagName("content:encoded").length() > 0)
+                content = element.elementsByTagName("content:encoded").item(0).firstChild().nodeValue();
 
             // Check if this is RSS2 or not
             uint pubDate;
