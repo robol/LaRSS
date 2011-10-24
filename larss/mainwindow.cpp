@@ -13,8 +13,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     // Open the database
+    QString location = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    if (!QFile::exists(location))
+        QDir().mkpath(location);
+    qDebug() << "Data location: " << location;
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("/home/leonardo/larss.db");
+    db.setDatabaseName(location + "/larss.db");
     db.open();
 
     // Load feedModel that will wrap the SQLite database
