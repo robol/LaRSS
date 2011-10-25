@@ -88,6 +88,9 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
     QDomDocument doc;
     if (doc.setContent(rssContent->value(nowLoading)))
     {
+        // Get transaction to support, otherwise the db will die
+        parser->db.transaction();
+
         // Try to catch other news_feed with the same link, so preload all of them.
         QSqlQuery query(parser->db);
         query.prepare ("SELECT link from news WHERE feed=:feed");
@@ -151,8 +154,14 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
 
                 if (!parser->insertRecord(-1, record))
                     qDebug () << "Error inserting record";
+
+                // Yield to try making the UI responsive.
+                yieldCurrentThread();
             }
         }
+
+        // Commit the changes.
+        parser->db.commit();
 
         if (!parser->submitAll())
             qDebug() << "Error submitting new data";
