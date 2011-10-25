@@ -35,6 +35,13 @@ FeedPoller::run()
                    this, SLOT(poll()));
     timer->start();
 
+    QTimer* updaterTimer = new QTimer();
+    updaterTimer->setInterval(10 * 60 * 1000);
+    updaterTimer->connect(updaterTimer, SIGNAL(timeout()),
+                   this, SLOT(queueAll()));
+
+    queueAll();
+
     QThread::exec();
 }
 
@@ -51,6 +58,7 @@ FeedPoller::poll()
             QModelIndex next_item = workQueue->takeFirst();
             FeedNode *node = model->itemFromIndex(next_item);
             nowLoading = node->id();
+            startLoadingFeed(node->name());
             manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
             return true;
         }
@@ -75,6 +83,24 @@ FeedPoller::queueWork(const QModelIndex &index)
     if (node->type() != FeedNode::Feed)
         return;
     workQueue->append(index);
+}
+
+void
+FeedPoller::queueAll()
+{
+    QStandardItem *rootItem = model->invisibleRootItem();
+    for(qint32 i = 0; i < rootItem->rowCount(); i++)
+    {
+        // Get the category
+        FeedNode *categoryNode = model->itemFromIndex(rootItem->child(i, 0)->index());
+
+        // Get all the feed in that category
+        for(qint32 j = 0; j < categoryNode->rowCount(); j++)
+        {
+            QModelIndex feedIndex = categoryNode->child(j, 0)->index ();
+            queueWork(feedIndex);
+        }
+    }
 }
 
 void
@@ -135,7 +161,6 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             }
             else
             {
-                qDebug() << "Rss 1.0";
                 guid = link;
                 pubDate = QDateTime::currentDateTime().toTime_t();
             }
@@ -170,6 +195,8 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
         qDebug () << "Error parsing the document";
 
     nowLoading = 0;
+    finishedLoadingFeed("");
+
     return;
 
     // Check if there is work in the queue
@@ -178,6 +205,7 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
         QModelIndex next_item = workQueue->takeFirst();
         FeedNode *node = (FeedNode*) next_item.internalPointer();
         nowLoading = node->id();
+        startLoadingFeed(node->name());
         manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
     }
 }

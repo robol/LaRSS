@@ -19,10 +19,13 @@ namespace Larss {
         void stopPolling ();
 
     signals:
+        void startLoadingFeed (QString name);
+        void finishedLoadingFeed (QString name);
 
     public slots:
         void networkManagerReplyFinished(QNetworkReply* reply);
         bool poll();
+        void queueAll ();
 
     private:
         /**

@@ -46,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rssParser->setFilter("1 = 0");
 
     poller = new FeedPoller (this, rssParser, feedModel);
+    poller->connect(poller, SIGNAL(startLoadingFeed(QString)), this,
+                    SLOT(loadingFeedStart(QString)));
     poller->start();
 }
 
@@ -53,6 +55,12 @@ MainWindow::~MainWindow()
 {
     db.close();
     delete ui;
+}
+
+void
+MainWindow::loadingFeedStart(QString feedName)
+{
+    ui->statusBar->showMessage(tr("Updating feed '%1'...").arg(feedName), 2000);
 }
 
 void MainWindow::do_exit()

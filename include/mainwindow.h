@@ -34,6 +34,9 @@ private slots:
 
     void on_actionAdd_Category_triggered();
 
+ public slots:
+    void loadingFeedStart (QString feedName);
+
 private:
     Ui::MainWindow *ui;
     void do_exit();
