@@ -34,8 +34,19 @@ private slots:
 
     void on_actionAdd_Category_triggered();
 
- public slots:
+public slots:
+    /**
+     * @brief Callback for the start of an update of a feed.
+     */
     void loadingFeedStart (QString feedName);
+
+    /**
+     * @brief Load a feed in the webview.
+     */
+    void loadFeed (const QModelIndex& index);
+
+protected:
+    bool eventFilter (QObject *object, QEvent *event);
 
 private:
     Ui::MainWindow *ui;
@@ -45,6 +56,12 @@ private:
     FeedModel *feedModel;
     RssParser *rssParser;
     FeedPoller *poller;
+
+    /**
+     * @brief A string containing the url to load
+     * for the loaded in the webview.
+     */
+    QString loadedNews;
 };
 
 }

@@ -42,6 +42,12 @@ FeedPoller::run()
 
     queueAll();
 
+    /* Connect timer to their terminations */
+    QObject::connect(this, SIGNAL(finished()),
+                   timer, SLOT(stop()));
+    QObject::connect(this, SIGNAL(finished()),
+                     updaterTimer, SLOT(stop()));
+
     QThread::exec();
 }
 

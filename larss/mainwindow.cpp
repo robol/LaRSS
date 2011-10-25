@@ -49,6 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
     poller->connect(poller, SIGNAL(startLoadingFeed(QString)), this,
                     SLOT(loadingFeedStart(QString)));
     poller->start();
+
+    // Install event filter to handle particular events.
+    ui->webViewTitleLabel->installEventFilter(this);
+    loadedNews = "";
 }
 
 MainWindow::~MainWindow()
@@ -96,19 +100,8 @@ void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
 
 void Larss::MainWindow::on_newsTableView_clicked(const QModelIndex &index)
 {
-    // Get the number of the row, since index.row () is likely to change
-    // while we set the read status on the post.
-    quint32 row_number = index.row();
-
     // A row got activated, so open it in the webview.
-    ui->webView->setHtml(rssParser->getContent(index));
-
-    // Select the right title
-    ui->webViewTitleLabel->setText(QString("<b>%1</b>").arg(rssParser->getTitle (index)));
-
-    // And then mark it as read
-    rssParser->setReadStatus(index, true);
-    ui->newsTableView->selectRow(row_number);
+    loadFeed(index);
 }
 
 void Larss::MainWindow::on_newsTableView_activated(const QModelIndex &index)
@@ -133,4 +126,39 @@ void Larss::MainWindow::on_actionAdd_Category_triggered()
     {
         feedModel->addCategory(dialog.getCategoryName());
     }
+}
+
+bool Larss::MainWindow::eventFilter(QObject *object, QEvent *event)
+{
+    if (object == ui->webViewTitleLabel)
+    {
+        if (event->type() == QEvent::MouseButtonPress)
+        {
+            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (loadedNews != "")
+            {
+                ui->webView->load(QUrl(loadedNews));
+            }
+            return true;
+        }
+        else
+            return false;
+    }
+    else
+        return QMainWindow::eventFilter(object, event);
+
+}
+
+void Larss::MainWindow::loadFeed(const QModelIndex& index)
+{
+    quint64 rowNumber = index.row();
+    loadedNews = rssParser->getLink(index);
+    ui->webView->setHtml(rssParser->getContent(index));
+
+    // Select the right title
+    ui->webViewTitleLabel->setText(QString("<b>%1</b>").arg(rssParser->getTitle (index)));
+
+    // And then mark it as read
+    rssParser->setReadStatus(index, true);
+    ui->newsTableView->selectRow(rowNumber);
 }
