@@ -33,22 +33,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Load the RSSParser, hiding the unnecessary columns
     ui->newsTableView->setModel(rssParser);
-    ui->newsTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->newsTableView->setColumnHidden(0, true); // ID
     ui->newsTableView->setColumnHidden(1, true); // Feed ID
     ui->newsTableView->setColumnHidden(3, true); // Link
     ui->newsTableView->setColumnHidden(4, true); // Description
     ui->newsTableView->setColumnHidden(5, true); // Content
-    // ui->newsTableView->setColumnHidden(6, true); // Time
     ui->newsTableView->setColumnHidden(7, true); // Read state
-    ui->newsTableView->setEditTriggers(QTableView::NoEditTriggers);
-    ui->newsTableView->verticalHeader()->setHidden(true);
-    ui->newsTableView->horizontalHeader()->setStretchLastSection(false);
     ui->newsTableView->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
     ui->newsTableView->horizontalHeader()->setResizeMode(6, QHeaderView::ResizeToContents);
 
-    // Show only unread elements
-    rssParser->setFilter("read=0");
+    // Show nothing for now.
+    rssParser->setFilter("1 = 0");
 
     poller = new FeedPoller (this, rssParser, feedModel);
     poller->start();

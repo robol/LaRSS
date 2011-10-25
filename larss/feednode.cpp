@@ -7,7 +7,6 @@ FeedNode::FeedNode(quint64 id, QString name, QString url) :
     nodeId(id), nodeName(name), nodeUrl(url)
 {
     setText (name);
-    qDebug() << "Created node, ID: " << id << " Name: " << name << " Url: " << url;
 }
 
 FeedNode::ItemType

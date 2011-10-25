@@ -26,12 +26,21 @@
         <enum>Qt::Vertical</enum>
        </property>
        <widget class="QTableView" name="newsTableView">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
         <property name="showGrid">
          <bool>false</bool>
         </property>
         <property name="gridStyle">
          <enum>Qt::DashLine</enum>
         </property>
+        <attribute name="horizontalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
         <attribute name="verticalHeaderStretchLastSection">
          <bool>false</bool>
         </attribute>
