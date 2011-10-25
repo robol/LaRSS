@@ -80,34 +80,69 @@ FeedModel::select()
 bool
 FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    return QStandardItemModel::setData(index, value, role);
+    // Get the involved node
+    FeedNode *node = itemFromIndex(index);
+
+    // First we need to update the data in the database.
+    QSqlQuery query(db);
+    if (node->type() == FeedNode::Category)
+    {
+        query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
+        query.bindValue("value", value);
+        query.bindValue("id", node->id());
+    }
+    else
+    {
+        query.prepare("UPDATE feeds SET name=:value WHERE id=:id;");
+        query.bindValue("value", value);
+        query.bindValue("id", node->id());
+    }
+
+    // Check if the query has gone well
+    if (query.exec())
+        return QStandardItemModel::setData(index, value, role);
+    else
+    {
+        qDebug() << query.executedQuery() << query.lastError();
+        return false;
+    }
 }
 
 bool
 FeedModel::addCategory(QString name)
 {
+    // First push the data in the database.
     QSqlQuery query(db);
     query.prepare("INSERT INTO categories VALUES (NULL, :name);");
     query.bindValue("name", name);
 
+    // If the insertion works then update the QStandardItemModel
     bool successful = query.exec();
     if (successful)
-        reset();
+    {
+        FeedNode *node = new FeedNode (query.lastInsertId().toInt(), name);
+        QStandardItem *root = invisibleRootItem();
+        root->appendRow(node);
+    }
     return successful;
 }
 
 bool
-FeedModel::addFeed(QString name, QString url, quint32 category_id)
+FeedModel::addFeed(QString name, QString url, FeedNode* categoryNode)
 {
     QSqlQuery query(db);
     query.prepare("INSERT INTO feeds VALUES (NULL, :category, :name, :url);");
-    query.bindValue("category", category_id);
+    query.bindValue("category", categoryNode->id());
     query.bindValue("name", name);
     query.bindValue("url", url);
 
     bool successful = query.exec();
     if (successful)
-        reset();
+    {
+        FeedNode *node = new FeedNode (query.lastInsertId().toInt(),
+                                       name, url);
+        categoryNode->appendRow(node);
+    }
     else
     {
         qDebug() << "Query failed: " << query.executedQuery() << query.lastError();

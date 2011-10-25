@@ -45,7 +45,7 @@ public:
     /**
      * @brief Add a new feed in the specified category.
      */
-    bool addFeed (QString name, QString url, quint32 category_id);
+    bool addFeed (QString name, QString url, FeedNode* categoryNode);
 
     /**
      * @brief Select data from the database.

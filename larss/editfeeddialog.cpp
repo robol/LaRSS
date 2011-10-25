@@ -32,8 +32,11 @@ EditFeedDialog::getFeedUrl()
     return ui->newFeedUrl->text();
 }
 
-quint64
-EditFeedDialog::getCategoryId()
+FeedNode*
+EditFeedDialog::getCategory()
 {
-    return ui->categoryComboBox->currentIndex() + 1;
+    QModelIndex root = feedModel->indexFromItem(feedModel->invisibleRootItem());
+    QModelIndex selectedCategory = feedModel->index (ui->categoryComboBox->currentIndex(),
+                                                     0, root);
+    return feedModel->itemFromIndex(selectedCategory);
 }

@@ -116,7 +116,7 @@ void Larss::MainWindow::on_actionAdd_Feed_triggered()
     if (dialog.exec() == QDialog::Accepted)
     {
         feedModel->addFeed(dialog.getFeedName(),
-                           dialog.getFeedUrl(), dialog.getCategoryId());
+                           dialog.getFeedUrl(), dialog.getCategory());
     }
 }
 

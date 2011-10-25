@@ -29,9 +29,9 @@ namespace Larss {
         QString getFeedUrl();
 
         /**
-         * @brief Return the ID of the selected category.
+         * @brief Return the FeedNode of the selected category.
          */
-        quint64 getCategoryId();
+        FeedNode* getCategory();
 
     private:
         Ui::EditFeedDialog *ui;

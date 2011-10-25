@@ -49,7 +49,7 @@ FeedPoller::poll()
         else
         {
             QModelIndex next_item = workQueue->takeFirst();
-            FeedNode *node = (FeedNode*) next_item.internalPointer();
+            FeedNode *node = model->itemFromIndex(next_item);
             nowLoading = node->id();
             manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
             return true;
@@ -69,7 +69,6 @@ FeedPoller::stopPolling ()
 void
 FeedPoller::queueWork(const QModelIndex &index)
 {
-    qDebug() << index;
     if (!index.isValid())
         return;
     FeedNode *node = model->itemFromIndex(index);
