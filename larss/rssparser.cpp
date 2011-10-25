@@ -116,7 +116,7 @@ Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
     setData(read_index, read ? 1 : 0);
     if (!submitAll())
         qDebug() << "Error while setting the read flag";
-    dataChanged (index, index);
+    model->triggerDataChanged();
 }
 
 quint64

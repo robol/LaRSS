@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "editfeeddialog.h"
 #include "editcategorydialog.h"
+#include "unreadcountitemdelegate.h"
 #include <QDebug>
 #include <QtGui>
 
@@ -26,7 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
     feedModel = new FeedModel(db, this);
     rssParser = new RssParser(db, feedModel, this);
 
+    // Create the delegate that counts unread posts.
     ui->feedTreeView->setModel(feedModel);
+    ui->feedTreeView->setItemDelegate (new UnReadCountItemDelegate(feedModel, rssParser));
 
     // Load the RSSParser, hiding the unnecessary columns
     ui->newsTableView->setModel(rssParser);

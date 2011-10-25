@@ -177,3 +177,10 @@ FeedModel::itemFromIndex(const QModelIndex &index)
         return rootNode;
 }
 
+void
+FeedModel::triggerDataChanged()
+{
+    dataChanged(index(1, 1, QModelIndex()),
+                index(1, 1, QModelIndex()));
+}
+

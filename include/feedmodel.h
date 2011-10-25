@@ -52,6 +52,11 @@ public:
      */
     void select();
 
+    /**
+     * @brief Call dataChanged
+     */
+    void triggerDataChanged();
+
     FeedNode * itemFromIndex (const QModelIndex& index);
 
 signals:

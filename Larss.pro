@@ -17,7 +17,8 @@ SOURCES += larss/main.cpp\
     larss/feedpoller.cpp \
     larss/editfeeddialog.cpp \
     larss/editcategorydialog.cpp \
-    larss/feednode.cpp
+    larss/feednode.cpp \
+    larss/unreadcountitemdelegate.cpp
 
 HEADERS  += include/mainwindow.h \
     include/feedmodel.h \
@@ -25,7 +26,8 @@ HEADERS  += include/mainwindow.h \
     include/feedpoller.h \
     include/editfeeddialog.h \
     include/editcategorydialog.h \
-    include/feednode.h
+    include/feednode.h \
+    include/unreadcountitemdelegate.h
 
 FORMS    += ui/mainwindow.ui \
     ui/editfeeddialog.ui \
