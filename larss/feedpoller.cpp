@@ -1,6 +1,7 @@
 #include "feedpoller.h"
 #include <QtXml>
 #include "feedmodel.h"
+#include "feednode.h"
 
 using namespace Larss;
 
@@ -48,7 +49,8 @@ FeedPoller::poll()
         else
         {
             QModelIndex next_item = workQueue->takeFirst();
-            nowLoading = next_item.internalId();
+            FeedNode *node = (FeedNode*) next_item.internalPointer();
+            nowLoading = node->id();
             manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
             return true;
         }
@@ -67,7 +69,11 @@ FeedPoller::stopPolling ()
 void
 FeedPoller::queueWork(const QModelIndex &index)
 {
-    if (index.internalId() < FEEDMODEL_MAX_CATEGORIES)
+    qDebug() << index;
+    if (!index.isValid())
+        return;
+    FeedNode *node = model->itemFromIndex(index);
+    if (node->type() != FeedNode::Feed)
         return;
     workQueue->append(index);
 }
@@ -86,7 +92,7 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
         // Try to catch other news_feed with the same link, so preload all of them.
         QSqlQuery query(parser->db);
         query.prepare ("SELECT link from news WHERE feed=:feed");
-        query.bindValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
+        query.bindValue("feed", nowLoading);
         if (!query.exec ())
             return;
 
@@ -142,7 +148,7 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
                 record.setValue("link", link);
                 record.setValue("description", description);
                 record.setValue("content", content);
-                record.setValue("feed", nowLoading - FEEDMODEL_MAX_CATEGORIES);
+                record.setValue("feed", nowLoading);
 
                 if (!parser->insertRecord(-1, record))
                     qDebug () << "Error inserting record";
@@ -162,7 +168,8 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
     if (!workQueue->isEmpty())
     {
         QModelIndex next_item = workQueue->takeFirst();
-        nowLoading = next_item.internalId();
+        FeedNode *node = (FeedNode*) next_item.internalPointer();
+        nowLoading = node->id();
         manager->get(QNetworkRequest(QUrl(model->getUrl(next_item))));
     }
 }

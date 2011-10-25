@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 #include "editfeeddialog.h"
 #include "editcategorydialog.h"
-#include "feedproxymodel.h"
 #include <QDebug>
 #include <QtGui>
 
@@ -27,11 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     feedModel = new FeedModel(db, this);
     rssParser = new RssParser(db, feedModel, this);
 
-    FeedProxyModel *proxyModel = new FeedProxyModel(this);
-    proxyModel->setModel(feedModel);
-    proxyModel->setParser(rssParser);
-
-    ui->feedTreeView->setModel(proxyModel);
+    ui->feedTreeView->setModel(feedModel);
 
     // Load the RSSParser, hiding the unnecessary columns
     ui->newsTableView->setModel(rssParser);
@@ -89,6 +84,7 @@ void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
         // Reset the title
         ui->webViewTitleLabel->setText("");
     }
+
 
 }
 

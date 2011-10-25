@@ -1,5 +1,5 @@
 #include "feedmodel.h"
-#include <QAbstractItemModel>
+#include "feednode.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -9,7 +9,7 @@
 
 using namespace Larss;
 
-FeedModel::FeedModel(QSqlDatabase db, QObject *parent) : QAbstractItemModel (parent)
+FeedModel::FeedModel(QSqlDatabase db, QObject *parent) : QStandardItemModel (parent)
 {
     this->db = db;
 
@@ -29,141 +29,58 @@ FeedModel::FeedModel(QSqlDatabase db, QObject *parent) : QAbstractItemModel (par
         if (!query.exec())
             qDebug() << "Error while creating the feeds table in the db";
     }
+
+    select();
 }
 
 FeedModel::~FeedModel()
 {
 }
 
-
-QModelIndex
-FeedModel::index(int row, int column, const QModelIndex &parent) const
+void
+FeedModel::select()
 {
-    if (parent.internalId() == 0)
+    // Clear the content of the model
+    clear();
+
+    // Get the root of the tree
+    QStandardItem *root = invisibleRootItem();
+
+    // Set the fake rootNode
+    rootNode = new FeedNode (0, "");
+
+    QSqlQuery query(db);
+    query.prepare("SELECT id, name from categories;");
+    if (query.exec() && query.first())
     {
-        QSqlQuery query (db);
-        query.prepare("SELECT id from categories ORDER by id;");
-        if (query.exec())
-        {
-            if (!query.first())
-                return QModelIndex();
-            for (int i = 0; i < row; i++)
+        do {
+            // Insert the new category in the tree
+            FeedNode* node = new FeedNode(query.value(0).toInt(), query.value(1).toString());
+            root->appendRow(node);
+
+            // Find the feeds associated with this category and add the as childs.
+            QSqlQuery feedQuery(db);
+            feedQuery.prepare("SELECT id, name, url FROM feeds WHERE category=:category");
+            feedQuery.bindValue("category", node->id());
+
+            if (feedQuery.exec() && feedQuery.first())
             {
-                if (!query.next ())
-                    return QModelIndex();
-            }
-            return createIndex(row, column, query.value(0).toInt());
-        }
-        else
-            return QModelIndex();
-    }
-    else
-    {
-        QSqlQuery query(db);
-        query.prepare ("SELECT id from feeds WHERE category=:category ORDER BY id;");
-        query.bindValue("category", parent.internalId());
-        if (query.exec())
-        {
-            if (!query.first())
-                return QModelIndex();
-            else
-            {
-                for(int i = 0; i < row; i++)
+                do
                 {
-                    if (!query.next())
-                        return QModelIndex();
-                }
-                return createIndex(row, column, query.value(0).toInt() + FEEDMODEL_MAX_CATEGORIES);
+                    FeedNode *feedNode = new FeedNode(feedQuery.value(0).toInt(),
+                                                      feedQuery.value(1).toString(),
+                                                      feedQuery.value(2).toString());
+                    node->appendRow(feedNode);
+                } while (feedQuery.next());
             }
-        }
-        else
-            return QModelIndex();
+        } while (query.next());
     }
 }
 
 bool
 FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-    if (role != Qt::EditRole)
-        return false;
-
-    QSqlQuery query(db);
-
-    if (index.internalId() < FEEDMODEL_MAX_CATEGORIES && index.internalId() != 0)
-    {
-        // We are trying to modify a category
-        query.prepare("UPDATE categories SET name=:value WHERE id=:id;");
-        query.bindValue("value", value.toString());
-        query.bindValue("id", index.internalId());
-    }
-    else
-    {
-        // We are trying to modify a feed
-        query.prepare("UPDATE feeds SET name=:value WHERE id=:id;");
-        query.bindValue("value", value.toString());
-        query.bindValue("id", index.internalId() - FEEDMODEL_MAX_CATEGORIES);
-    }
-
-    if (!query.exec())
-    {
-        qDebug() << "Query failed" << query.lastError() << query.executedQuery();
-        return false;
-    }
-    else
-    {
-        // Emit the datachanged signal
-        dataChanged(index, index);
-        return true;
-    }
-}
-
-Qt::ItemFlags
-FeedModel::flags(const QModelIndex &index) const
-{
-    Q_UNUSED(index);
-    return (Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
-}
-
-int
-FeedModel::rowCount(const QModelIndex &parent) const
-{
-    if (!parent.isValid())
-    {
-        // Categories count
-        QSqlQuery query(db);
-        query.prepare ("SELECT id from categories ORDER by id;");
-        if (query.exec())
-        {
-            int row_count = 1;
-            if (!query.first())
-                return 0;
-            else
-                while (query.next())
-                    row_count++;
-            return row_count;
-        }
-        else
-            return 0;
-    }
-    else
-    {
-        int category_id = parent.internalId();
-        QSqlQuery query(db);
-        query.prepare("SELECT id from feeds where category=:category;");
-        query.bindValue("category", category_id);
-        if (query.exec())
-        {
-            int row_count = 1;
-            if (!query.first())
-                return 0;
-            else
-                while (query.next())
-                    row_count++;
-            return row_count;
-        }
-        else
-            return 0;
-    }
+    return QStandardItemModel::setData(index, value, role);
 }
 
 bool
@@ -199,132 +116,6 @@ FeedModel::addFeed(QString name, QString url, quint32 category_id)
     return successful;
 }
 
-int
-FeedModel::columnCount(const QModelIndex &parent) const
-{
-    Q_UNUSED(parent);
-    return 1;
-}
-
-QVariant
-FeedModel::data(const QModelIndex &index, int role) const
-{
-    if (role == Qt::DisplayRole)
-    {
-        if (index.internalId() == 0)
-            return QString ("Root");
-        if (index.internalId() < FEEDMODEL_MAX_CATEGORIES)
-        {
-            QSqlQuery query(db);
-            query.prepare ("SELECT id, name from categories WHERE id=:category;");
-            query.bindValue("category", index.internalId());
-            if (query.exec())
-            {
-                if (!query.first())
-                    return QVariant(QVariant::Invalid);
-                else
-                {
-                    return query.value(1).toString();
-                }
-            }
-            else
-                return QVariant(QVariant::Invalid);
-        }
-        else
-        {
-            QSqlQuery query(db);
-            query.prepare ("SELECT id, category, name, url from feeds WHERE id=:feed;");
-            query.bindValue("feed", index.internalId() - FEEDMODEL_MAX_CATEGORIES);
-            if (query.exec())
-            {
-                if (query.first())
-                    return query.value(2).toString();
-                else
-                    return QVariant(QVariant::Invalid);
-            }
-            else
-                return QVariant(QVariant::Invalid);
-        }
-    }
-    else
-        return QVariant (QVariant::Invalid);
-}
-
-QModelIndex
-FeedModel::parent(const QModelIndex &child) const
-{
-    if (!child.isValid())
-        return QModelIndex ();
-
-    quint32 row;
-    quint32 id = child.internalId();
-
-    if (id == 0)
-        return QModelIndex();
-    else if (id < FEEDMODEL_MAX_CATEGORIES)
-    {
-        // Get the position of the category
-        QSqlQuery query (db);
-        query.prepare ("SELECT id from category;");
-        if (query.exec ())
-        {
-            if (query.first ())
-                row = 1;
-            else
-                return QModelIndex ();
-            while (query.next ())
-            {
-                row++;
-                if ((quint64) query.value(0).toInt() == id)
-                    break;
-            }
-
-            return createIndex (row, 1, 0);
-        }
-        else
-            return QModelIndex();
-    }
-    else
-    {
-        quint32 category_id;
-        // We have a feed here, that actually has a real parent.
-        // We need to get the ID of the category
-        id -= FEEDMODEL_MAX_CATEGORIES;
-        QSqlQuery query (db);
-        query.prepare ("SELECT category from feeds WHERE id=:id;");
-        query.bindValue("id", id);
-        if (query.exec())
-        {
-            if (!query.first ())
-                return QModelIndex();
-            else
-            {
-                category_id = query.value(0).toInt();
-
-                // We need to get the position of the feed in the category
-                query.prepare("SELECT id from feeds WHERE category=:category;");
-                query.bindValue("category", category_id);
-                if (query.exec())
-                {
-                    row = 1;
-                    if (!query.first())
-                        return QModelIndex();
-                    else
-                    {
-                        while (query.next())
-                            row++;
-                        return createIndex(row, 1, category_id);
-                    }
-                }
-                else
-                    return QModelIndex();
-            }
-        }
-        else
-            return QModelIndex();
-    }
-}
-
 QVariant
 FeedModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -338,23 +129,16 @@ FeedModel::headerData(int section, Qt::Orientation orientation, int role) const
 QString
 FeedModel::getUrl(const QModelIndex &index)
 {
-    quint64 id = index.internalId();
-    if (id < FEEDMODEL_MAX_CATEGORIES)
-        return "";
+    FeedNode *node = itemFromIndex(index);
+    return node->url();
+}
+
+FeedNode*
+FeedModel::itemFromIndex(const QModelIndex &index)
+{
+    if (index.isValid())
+        return (FeedNode*) QStandardItemModel::itemFromIndex(index);
     else
-    {
-        QSqlQuery query(db);
-        query.prepare("SELECT url from feeds WHERE id=:id;");
-        query.bindValue("id", id - FEEDMODEL_MAX_CATEGORIES);
-        if (query.exec())
-        {
-            if (query.first())
-                return query.value(0).toString();
-            else
-                return "";
-        }
-        else
-            return "";
-    }
+        return rootNode;
 }
 

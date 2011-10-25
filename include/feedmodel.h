@@ -2,15 +2,16 @@
 #define FEEDMODEL_H
 
 #include <QObject>
-#include <QAbstractItemModel>
+#include <QStandardItemModel>
 #include <QSqlDatabase>
 #include <QtXml>
+#include "feednode.h"
 
 namespace Larss {
 
 #define FEEDMODEL_MAX_CATEGORIES 1024
 
-class FeedModel : public QAbstractItemModel {
+class FeedModel : public QStandardItemModel {
     Q_OBJECT
 
 public:
@@ -20,36 +21,6 @@ public:
      * @brief Destructor for the FeedModel
      */
     ~FeedModel();
-
-    /**
-     * @brief Get the ModelIndex associated with a given row and column.
-     */
-    QModelIndex index(int row, int column, const QModelIndex &parent) const;
-
-    /**
-     * @brief Get the number of rows in the list.
-     */
-    int rowCount(const QModelIndex &parent) const;
-
-    /**
-     * @brief Get the number of column
-     */
-    int columnCount(const QModelIndex &parent) const;
-
-    /**
-     * @brief Get the data associated to a given node.
-     */
-    QVariant data(const QModelIndex &index, int role) const;
-
-    /**
-     * @brief Get the parent of a given node.
-     */
-    QModelIndex parent(const QModelIndex &child) const;
-
-    /**
-     * @brief Return the flags for the given item.
-     */
-    Qt::ItemFlags flags(const QModelIndex &index) const;
 
     /**
      * @brief Return the data to be inserted in the column header of the treeview.
@@ -76,6 +47,13 @@ public:
      */
     bool addFeed (QString name, QString url, quint32 category_id);
 
+    /**
+     * @brief Select data from the database.
+     */
+    void select();
+
+    FeedNode * itemFromIndex (const QModelIndex& index);
+
 signals:
 
 public slots:
@@ -85,6 +63,8 @@ private:
      * @brief Database containing the data of the feeds.
      */
     QSqlDatabase db;
+
+    FeedNode *rootNode;
 
 
 };

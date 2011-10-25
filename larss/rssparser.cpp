@@ -1,4 +1,5 @@
 #include "rssparser.h"
+#include "feednode.h"
 #include <QDebug>
 #include <QtXml>
 #include <QtSql>
@@ -121,11 +122,11 @@ Larss::RssParser::setReadStatus(const QModelIndex& index, bool read)
 quint64
 Larss::RssParser::getFeed(const QModelIndex &index)
 {
-    quint64 id = index.internalId();
-    if (id < FEEDMODEL_MAX_CATEGORIES)
+    FeedNode *node = model->itemFromIndex (index);
+    if (node->type() == FeedNode::Category)
         return 0;
     else
-        return (id - FEEDMODEL_MAX_CATEGORIES);
+        return node->id();
 }
 
 QString
