@@ -159,16 +159,22 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             uint pubDate;
             QString guid;
             QString pubDateTimeContent;
+
+            // Check if we have Guid, in RSS 1.0 was not present.
             if (element.elementsByTagName("guid").length() != 0)
-            {
                 guid = element.elementsByTagName("guid").item(0).firstChild().nodeValue();
+            else
+                guid = link;
+
+            // Check if we have pubDate
+            if (element.elementsByTagName("pubDate").length() != 0)
+            {
                 pubDateTimeContent = element.elementsByTagName("pubDate").item(0).firstChild().nodeValue();
                 pubDate = pubDateToDateTime(pubDateTimeContent).toTime_t();
             }
             else
             {
-                guid = link;
-                pubDate = QDateTime::currentDateTime().toTime_t();
+                pubDate = QDateTime::currentDateTimeUtc().toTime_t();
             }
 
             if (!links.contains(link))
@@ -219,10 +225,17 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
 QDateTime
 FeedPoller::pubDateToDateTime (QString pubDate)
 {
+    QString pubDateToParse;
+    // If the Day is not present in pubDate set a fake
+    // Day on top of it to make parsing working.
+    if (!pubDate.contains(","))
+        pubDateToParse = QString("Sun, %1").arg(pubDate);
+    else
+        pubDateToParse = pubDate;
     // Parsing the data, take Sun, 12 Oct 2011 15:21:12 GMT
     // pieces[0] is Sun  --- pieces[1] is 12  --- pieces[2] is Oct
     // pieces[3] is 2011 --- pieces[4] is 15:21:12 --- pieces[6] is GMT
-    QStringList pieces = pubDate.split(" ");
+    QStringList pieces = pubDateToParse.split(" ");
     QDateTime date;
 
     int month, year, day;

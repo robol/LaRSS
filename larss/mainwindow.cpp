@@ -14,11 +14,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // Open the database
+    // Open the database, and create the directories for the data
+    // storage if they are not yet present in the filesystem.
     QString location = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     if (!QFile::exists(location))
         QDir().mkpath(location);
-    qDebug() << "Data location: " << location;
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(location + "/larss.db");
     db.open();
@@ -62,6 +62,15 @@ MainWindow::MainWindow(QWidget *parent) :
         resize (settings.value("width").toInt(),
                 settings.value("height").toInt());
     }
+
+    // Expand all the categories. This is will be like this until we do
+    // not implement a decent method to store open/close categories on close.
+    QStandardItem *rootItem = feedModel->invisibleRootItem();
+    for(qint32 i = 0; i < rootItem->rowCount(); i++)
+    {
+        QModelIndex index = rootItem->child(i, 0)->index();
+        ui->feedTreeView->expand(index);
+    }
 }
 
 MainWindow::~MainWindow()
@@ -78,6 +87,7 @@ MainWindow::loadingFeedStart(QString feedName)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    Q_UNUSED(event);
     do_exit();
 }
 
@@ -156,7 +166,7 @@ bool Larss::MainWindow::eventFilter(QObject *object, QEvent *event)
         if (event->type() == QEvent::MouseButtonPress)
         {
             QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-            if (loadedNews != "")
+            if (mouseEvent->button() ==  Qt::LeftButton && loadedNews != "")
             {
                 ui->webView->load(QUrl(loadedNews));
             }
