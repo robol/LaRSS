@@ -53,6 +53,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // Install event filter to handle particular events.
     ui->webViewTitleLabel->installEventFilter(this);
     loadedNews = "";
+
+    // Give the window the right size, if present in the
+    // settings.
+    QSettings settings;
+    if (settings.contains("width") && settings.contains("height"))
+    {
+        resize (settings.value("width").toInt(),
+                settings.value("height").toInt());
+    }
 }
 
 MainWindow::~MainWindow()
@@ -67,10 +76,22 @@ MainWindow::loadingFeedStart(QString feedName)
     ui->statusBar->showMessage(tr("Updating feed '%1'...").arg(feedName), 2000);
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    do_exit();
+}
+
 void MainWindow::do_exit()
 {
+    // Kill the poller
     poller->stopPolling();
     poller->wait();
+
+    // Save window size
+    QSettings settings;
+    settings.setValue("width",  width());
+    settings.setValue("height", height());
+
     QApplication::exit();
 }
 
