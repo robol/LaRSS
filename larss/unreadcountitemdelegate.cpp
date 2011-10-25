@@ -29,7 +29,8 @@ UnReadCountItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
                 QFont font = option.font;
                 font.setBold(true);
                 painter->setFont(font);
-                painter->drawText(option.rect, Qt::AlignLeft, QString ("%1 (%2)").arg(index.data(Qt::DisplayRole).toString()).arg(unreadPosts));
+                painter->drawText(option.rect, option.displayAlignment,
+                                  QString (" %1 (%2)").arg(index.data(Qt::DisplayRole).toString()).arg(unreadPosts));
 
                 return;
             }
