@@ -36,10 +36,10 @@ FeedPoller::run()
     timer->start();
 
     QTimer* updaterTimer = new QTimer();
-    updaterTimer->setInterval(10 * 60 * 1000);
+    updaterTimer->setInterval(10 * 60000);
     updaterTimer->connect(updaterTimer, SIGNAL(timeout()),
                    this, SLOT(queueAll()));
-
+    updaterTimer->start();
     queueAll();
 
     /* Connect timer to their terminations */
