@@ -113,9 +113,6 @@ void MainWindow::on_actionExit_activated()
 
 void Larss::MainWindow::on_feedTreeView_clicked(const QModelIndex &index)
 {
-    // Trigger refresh of selected item
-    poller->queueWork(index);
-
     // Set the active filter
     quint64 feed_id;
     if ((feed_id = rssParser->getFeed (index)))
@@ -192,4 +189,15 @@ void Larss::MainWindow::loadFeed(const QModelIndex& index)
     // And then mark it as read
     rssParser->setReadStatus(index, true);
     ui->newsTableView->selectRow(rowNumber);
+}
+
+void Larss::MainWindow::on_actionNext_unread_news_triggered()
+{
+    QModelIndex index = ui->newsTableView->selectionModel()->currentIndex();
+    int nextUnread = rssParser->getNextUnread(index);
+    if (nextUnread > 0)
+    {
+        ui->newsTableView->selectRow(nextUnread);
+        loadFeed (ui->newsTableView->selectionModel()->currentIndex());
+    }
 }

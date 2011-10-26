@@ -118,7 +118,14 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuFeed">
+    <property name="title">
+     <string>Feed</string>
+    </property>
+    <addaction name="actionNext_unread_news"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuFeed"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExit">
@@ -134,6 +141,14 @@
   <action name="actionAdd_Category">
    <property name="text">
     <string>Add Category</string>
+   </property>
+  </action>
+  <action name="actionNext_unread_news">
+   <property name="text">
+    <string>Next unread news</string>
+   </property>
+   <property name="shortcut">
+    <string>N</string>
    </property>
   </action>
  </widget>

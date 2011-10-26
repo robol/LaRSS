@@ -168,3 +168,18 @@ Larss::RssParser::selectActiveFeed(quint64 feed_id)
     // Show only the news from the given feed
     setFilter(QString("feed='%1'").arg(feed_id));
 }
+
+int
+Larss::RssParser::getNextUnread(const QModelIndex& starting)
+{
+    int row = starting.row();
+    while (row < rowCount(starting.parent()))
+    {
+        QSqlRecord record = this->record(row);
+        if (record.value("read").toInt() == 0)
+            return row;
+        row++;
+    }
+
+    return -1;
+}

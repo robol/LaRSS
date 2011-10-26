@@ -73,6 +73,11 @@ namespace Larss {
         void selectActiveFeed (quint64 feed_id);
 
         /**
+         * @brief Get the next unread element.
+         */
+        int getNextUnread (const QModelIndex& index);
+
+        /**
          * @brief Database where all the news will be loaded and saved.
          */
         QSqlDatabase db;

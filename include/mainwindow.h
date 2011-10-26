@@ -34,6 +34,8 @@ private slots:
 
     void on_actionAdd_Category_triggered();
 
+    void on_actionNext_unread_news_triggered();
+
 public slots:
     /**
      * @brief Callback for the start of an update of a feed.
