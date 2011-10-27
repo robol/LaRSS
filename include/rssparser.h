@@ -78,6 +78,11 @@ namespace Larss {
         int getNextUnread (const QModelIndex& index);
 
         /**
+         * @brief Delete all news that are from the given feed.
+         */
+        void removeNewsForFeed (const QModelIndex& index);
+
+        /**
          * @brief Database where all the news will be loaded and saved.
          */
         QSqlDatabase db;

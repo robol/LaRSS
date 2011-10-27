@@ -48,6 +48,16 @@ public:
     bool addFeed (QString name, QString url, FeedNode* categoryNode);
 
     /**
+     * @brief Remove rows from the treeview
+     */
+    bool removeElements (int row, int count, const QModelIndex &parent = QModelIndex());
+
+    /**
+     * @brief Remove a single row from the treeview.
+     */
+    bool removeElement (int row, const QModelIndex &parent = QModelIndex());
+
+    /**
      * @brief Select data from the database.
      */
     void select();

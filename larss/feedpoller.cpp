@@ -197,11 +197,11 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
             }
         }
 
-        // Commit the changes.
-        parser->db.commit();
-
         if (!parser->submitAll())
             qDebug() << "Error submitting new data";
+
+        // Commit the changes.
+        parser->db.commit();
     }
     else
         qDebug () << "Error parsing the document";

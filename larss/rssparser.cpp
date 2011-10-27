@@ -183,3 +183,22 @@ Larss::RssParser::getNextUnread(const QModelIndex& starting)
 
     return -1;
 }
+
+void
+Larss::RssParser::removeNewsForFeed(const QModelIndex& index)
+{
+    if (!index.isValid())
+        return;
+    FeedNode *node = model->itemFromIndex(index);
+
+    if (node->type() == FeedNode::Feed)
+    {
+        int id = node->id();
+        QSqlQuery query(db);
+        query.prepare("DELETE FROM news WHERE feed=:feed");
+        query.bindValue("feed", id);
+
+        if (!query.exec())
+            qDebug() << "Error deleting news from feed " << node->name();
+    }
+}

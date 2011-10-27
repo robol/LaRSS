@@ -31,7 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->feedTreeView->setModel(feedModel);
     ui->feedTreeView->setItemDelegate (new UnReadCountItemDelegate(feedModel, rssParser));
 
-    // Load the RSSParser, hiding the unnecessary columns
+    // Load the RSSParser, hiding the unnecessary columns and applying
+    // some custom style :)
     ui->newsTableView->setModel(rssParser);
     ui->newsTableView->setColumnHidden(0, true); // ID
     ui->newsTableView->setColumnHidden(1, true); // Feed ID
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->newsTableView->setColumnHidden(7, true); // Read state
     ui->newsTableView->horizontalHeader()->setResizeMode(2, QHeaderView::Stretch);
     ui->newsTableView->horizontalHeader()->setResizeMode(6, QHeaderView::ResizeToContents);
+    ui->newsTableView->setAlternatingRowColors(true);
 
     // Show nothing for now.
     rssParser->setFilter("1 = 0");
@@ -50,7 +52,8 @@ MainWindow::MainWindow(QWidget *parent) :
                     SLOT(loadingFeedStart(QString)));
     poller->start();
 
-    // Install event filter to handle particular events.
+    // Install event filter to handle particular events, such as mouseclicks that
+    // triggers original article loading.
     ui->webViewTitleLabel->installEventFilter(this);
     loadedNews = "";
 
@@ -199,5 +202,69 @@ void Larss::MainWindow::on_actionNext_unread_news_triggered()
     {
         ui->newsTableView->selectRow(nextUnread);
         loadFeed (ui->newsTableView->selectionModel()->currentIndex());
+    }
+}
+
+void Larss::MainWindow::on_actionUpdate_this_feed_triggered()
+{
+    QModelIndex index = ui->feedTreeView->selectionModel()->currentIndex();
+    if (index.isValid())
+    {
+        poller->queueWork(index);
+    }
+}
+
+void Larss::MainWindow::on_feedTreeView_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->feedTreeView->indexAt(pos);
+    if (index.isValid())
+    {
+        // Check if this is a category or not.
+        FeedNode *node = feedModel->itemFromIndex(index);
+
+        QMenu popupMenu (this);
+
+        if (node->type() == FeedNode::Feed)
+        {
+            popupMenu.addAction(tr("Update"), this, SLOT(on_actionUpdate_this_feed_triggered()));
+            popupMenu.addAction(tr("Remove"), this,
+                                SLOT(removeSelectedFeed()));
+        }
+        else if (node->type() == FeedNode::Category)
+        {
+            popupMenu.addAction(tr("Remove"), this,
+                                SLOT(removeSelectedCategory()));
+        }
+
+        popupMenu.exec(ui->feedTreeView->mapToGlobal(pos));
+    }
+}
+
+void Larss::MainWindow::removeSelectedFeed()
+{
+    QModelIndex index = ui->feedTreeView->currentIndex();
+
+    // We need to remove all the feeds from that category
+    rssParser->removeNewsForFeed(index);
+
+    // And then remove the feed itself.
+    feedModel->removeElement(index.row(), index.parent());
+}
+
+void Larss::MainWindow::removeSelectedCategory()
+{
+    // Check that the category is empty before removing it
+    QModelIndex index = ui->feedTreeView->currentIndex();
+    if (feedModel->rowCount(index) > 0)
+    {
+        QMessageBox messageBox;
+        messageBox.setText("Impossible to remove category");
+        messageBox.setInformativeText("Please remove feeds in this category before trying to remove it.");
+
+        messageBox.exec ();
+    }
+    else
+    {
+        feedModel->removeElement(index.row());
     }
 }

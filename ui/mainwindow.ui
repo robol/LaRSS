@@ -20,7 +20,11 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="feedTreeView"/>
+      <widget class="QTreeView" name="feedTreeView">
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
+      </widget>
       <widget class="QSplitter" name="splitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -43,6 +47,12 @@
         </attribute>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>24</number>
+        </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>24</number>
         </attribute>
         <attribute name="verticalHeaderStretchLastSection">
          <bool>false</bool>
@@ -123,6 +133,7 @@
      <string>Feed</string>
     </property>
     <addaction name="actionNext_unread_news"/>
+    <addaction name="actionUpdate_this_feed"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuFeed"/>
@@ -149,6 +160,11 @@
    </property>
    <property name="shortcut">
     <string>N</string>
+   </property>
+  </action>
+  <action name="actionUpdate_this_feed">
+   <property name="text">
+    <string>Update</string>
    </property>
   </action>
  </widget>

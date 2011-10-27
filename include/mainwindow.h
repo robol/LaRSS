@@ -36,6 +36,14 @@ private slots:
 
     void on_actionNext_unread_news_triggered();
 
+    void on_actionUpdate_this_feed_triggered();
+
+    void on_feedTreeView_customContextMenuRequested(const QPoint &pos);
+
+    void removeSelectedFeed ();
+
+    void removeSelectedCategory ();
+
 public slots:
     /**
      * @brief Callback for the start of an update of a feed.

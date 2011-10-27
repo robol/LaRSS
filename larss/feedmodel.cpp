@@ -109,6 +109,63 @@ FeedModel::setData(const QModelIndex &index, const QVariant &value, int role)
 }
 
 bool
+FeedModel::removeElements(int row, int count, const QModelIndex &parent)
+{
+    for(int i = 0; i < count; i++)
+    {
+        if (!removeElement(row, parent))
+            return false;
+    }
+    return true;
+}
+
+bool
+FeedModel::removeElement(int row, const QModelIndex &parent)
+{
+    if (parent.isValid())
+    {
+        // This means that this is a feed.
+        QModelIndex index = parent.child(row, 0);
+        FeedNode *node = itemFromIndex(index);
+
+        QSqlQuery query(db);
+        query.prepare ("DELETE FROM feeds WHERE id=:feed;");
+        query.bindValue("feed", node->id());
+
+        if (!query.exec())
+        {
+            qDebug() << "Error removing a row";
+            return false;
+        }
+        else
+            QStandardItemModel::removeRow(row, parent);
+    }
+    else
+    {
+        // This means that this is a feed.
+        QModelIndex index = this->index(row, 0, parent);
+        FeedNode *node = itemFromIndex(index);
+        QSqlQuery query(db);
+        query.prepare ("DELETE FROM categories WHERE id=:category");
+        query.bindValue("category", node->id());
+
+        if (!query.exec())
+        {
+            qDebug() << "Error removing a row";
+            return false;
+        }
+        else
+        {
+            QStandardItemModel::removeRow(row, parent);
+        }
+    }
+
+    return true;
+}
+
+
+
+bool
 FeedModel::addCategory(QString name)
 {
     // First push the data in the database.
