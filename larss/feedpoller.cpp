@@ -22,6 +22,10 @@ FeedPoller::FeedPoller(QObject *parent, RssParser *parser, FeedModel *model) :
     manager = new QNetworkAccessManager ();
     manager->connect(manager, SIGNAL(finished(QNetworkReply*)),
                      this, SLOT(networkManagerReplyFinished(QNetworkReply*)));
+
+    // We don't have a flooded bubble queue since there are no bubble queue
+    // yet.
+    floodedBubbleQueue = false;
 }
 
 void
@@ -191,6 +195,37 @@ FeedPoller::networkManagerReplyFinished(QNetworkReply *reply)
 
                 if (!parser->insertRecord(-1, record))
                     qDebug () << "Error inserting record";
+
+                // Notify of the newly inserted record.
+                if (floodedBubbleQueue)
+                {
+                    // Check if enought time has passed.
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    if (now >= lastShownBubble.addSecs(10))
+                    {
+                        lastShownBubble = now;
+                        newElementsNotification(record.value("title").toString(),
+                                                record.value("description").toString());
+                        floodedBubbleQueue = false;
+                    }
+                }
+                else
+                {
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    if (now <= lastShownBubble.addSecs(10))
+                    {
+                        floodedBubbleQueue = true;
+                        lastShownBubble = now;
+                        newElementsNotification(tr("New items to read"),
+                                                tr("New elements have been loaded in Larss."));
+                    }
+                    else
+                    {
+                        lastShownBubble = QDateTime::currentDateTimeUtc();
+                        newElementsNotification(record.value("title").toString(),
+                                               record.value("description").toString());
+                    }
+                }
 
                 // Yield to try making the UI responsive.
                 yieldCurrentThread();

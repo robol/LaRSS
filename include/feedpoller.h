@@ -21,6 +21,7 @@ namespace Larss {
     signals:
         void startLoadingFeed (QString name);
         void finishedLoadingFeed (QString name);
+        void newElementsNotification (QString title, QString body);
 
     public slots:
         void networkManagerReplyFinished(QNetworkReply* reply);
@@ -71,7 +72,22 @@ namespace Larss {
          */
         void run();
 
+        /**
+         * @brief Convert the content of the pubDate tag
+         * into a QDateTime object.
+         */
         QDateTime pubDateToDateTime (QString pubDate);
+
+        /**
+         * @brief The time that the last bubble has been shown.
+         */
+        QDateTime lastShownBubble;
+
+        /**
+         * @brief True if the last bubble shown was of the type
+         * "Many news to read, not listing them all".
+         */
+        bool floodedBubbleQueue;
 
     };
 }

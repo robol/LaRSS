@@ -6,6 +6,7 @@
 #include "feedmodel.h"
 #include "feedpoller.h"
 #include <QSqlDatabase>
+#include <QtGui>
 
 namespace Ui {
     class MainWindow;
@@ -55,6 +56,11 @@ public slots:
      */
     void loadFeed (const QModelIndex& index);
 
+    /**
+     * @brief Show a notification about new loaded elements.
+     */
+    void showNewElement (QString title, QString body);
+
 protected:
     bool eventFilter (QObject *object, QEvent *event);
     void closeEvent(QCloseEvent *event);
@@ -63,9 +69,25 @@ private:
     Ui::MainWindow *ui;
     void do_exit();
 
+    /**
+     * @brief The database used for
+     * storing all the feed-related data.
+     */
     QSqlDatabase db;
+
+    /**
+     * The model describing feeds and categories.
+     */
     FeedModel *feedModel;
+
+    /**
+     * @brief The model describing the news.
+     */
     RssParser *rssParser;
+
+    /**
+     * @brief The poller for the news.
+     */
     FeedPoller *poller;
 
     /**
@@ -73,6 +95,11 @@ private:
      * for the loaded in the webview.
      */
     QString loadedNews;
+
+    /**
+     * @brief System tray icon used to show the notifications.
+     */
+    QSystemTrayIcon *systrayIcon;
 };
 
 }

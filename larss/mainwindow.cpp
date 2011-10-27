@@ -74,18 +74,35 @@ MainWindow::MainWindow(QWidget *parent) :
         QModelIndex index = rootItem->child(i, 0)->index();
         ui->feedTreeView->expand(index);
     }
+
+    systrayIcon = new QSystemTrayIcon (QIcon (":/images/larss.png"));
+    systrayIcon->setVisible(true);
+
+    poller->connect(poller, SIGNAL(newElementsNotification(QString,QString)),
+                    this, SLOT(showNewElement(QString,QString)));
+
 }
 
 MainWindow::~MainWindow()
 {
     db.close();
+    delete systrayIcon;
     delete ui;
+    delete feedModel;
+    delete rssParser;
+    delete poller;
 }
 
 void
 MainWindow::loadingFeedStart(QString feedName)
 {
     ui->statusBar->showMessage(tr("Updating feed '%1'...").arg(feedName), 2000);
+}
+
+void
+MainWindow::showNewElement(QString title, QString body)
+{
+    systrayIcon->showMessage(title, body);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

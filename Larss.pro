@@ -34,3 +34,6 @@ FORMS    += ui/mainwindow.ui \
     ui/editcategorydialog.ui
 
 INCLUDEPATH += ./include
+
+RESOURCES += \
+    qtresources.qrc
