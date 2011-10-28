@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/images">
-        <file>images/larss.png</file>
+        <file alias="larss.png">images/larss.png</file>
+        <file alias="larss32.png">images/larss32.png</file>
     </qresource>
 </RCC>

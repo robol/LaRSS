@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Larss 0.1</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../qtresources.qrc">
+    <normaloff>:/images/larss.png</normaloff>:/images/larss.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
@@ -176,6 +180,8 @@
    <header>QtWebKit/QWebView</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../qtresources.qrc"/>
+ </resources>
  <connections/>
 </ui>

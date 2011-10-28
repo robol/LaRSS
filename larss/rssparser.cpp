@@ -95,7 +95,7 @@ Larss::RssParser::data(const QModelIndex &idx, int role) const
     // Manage a nice rendering of Time
     if (role == Qt::DisplayRole && idx.column() == 6)
     {
-        return (QDateTime::fromTime_t(QSqlTableModel::data(idx, role).toInt()).toString());
+        return (QDateTime::fromTime_t(QSqlTableModel::data(idx, role).toInt()).toString("dd/MM/yyyy hh:mm"));
     }
 
     // Call the default implementaton in almost every case

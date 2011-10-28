@@ -75,12 +75,14 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->feedTreeView->expand(index);
     }
 
-    systrayIcon = new QSystemTrayIcon (QIcon (":/images/larss.png"));
-    systrayIcon->setVisible(true);
+    // Create the systray icon
+    QIcon larssIcon(":larss32.png");
+    systrayIcon = new QSystemTrayIcon (larssIcon);
+    systrayIcon->show();
 
+    // Set the icon for the window.
     poller->connect(poller, SIGNAL(newElementsNotification(QString,QString)),
                     this, SLOT(showNewElement(QString,QString)));
-
 }
 
 MainWindow::~MainWindow()
@@ -214,13 +216,120 @@ void Larss::MainWindow::loadFeed(const QModelIndex& index)
 void Larss::MainWindow::on_actionNext_unread_news_triggered()
 {
     QModelIndex index = ui->newsTableView->selectionModel()->currentIndex();
-    int nextUnread = rssParser->getNextUnread(index);
+    QItemSelection startingFeedSelection = ui->feedTreeView->selectionModel()->selection();
+    int startingNewsRow = ui->newsTableView->currentIndex().row();
+    QModelIndex feedIndex = ui->feedTreeView->currentIndex();
+    QModelIndex categoryIndex;
+    int startingCategoryRow;
+    int nextUnread;
+
+    // Store the category or the index that is selected now, to be sure that after
+    // a complete round searching for new items we don't begin one time more.
+    FeedNode *selectedNode = feedModel->itemFromIndex(feedIndex);
+    int categoriesNumber = feedModel->rowCount();
+
+    if (selectedNode->type() == FeedNode::Category)
+    {
+        startingCategoryRow = feedIndex.row();
+
+        // Search for a feed, not a category
+        while (feedModel->rowCount(feedIndex) == 0)
+        {
+            // Step to the next category, since this is empty
+            if (feedIndex.row() == categoriesNumber - 1)
+                feedIndex = feedModel->index(0, 0);
+            else
+                feedIndex = feedModel->index(feedIndex.row() + 1, 0);
+
+            // Check if that was the starting category, in that case they are all empty
+            // so simply do nothing
+            if (feedIndex.row() == startingCategoryRow)
+            {
+                ui->feedTreeView->selectionModel()->select(startingFeedSelection, QItemSelectionModel::SelectCurrent);
+                on_feedTreeView_clicked(ui->feedTreeView->currentIndex());
+                ui->newsTableView->selectRow(startingNewsRow);
+                loadFeed (ui->newsTableView->selectionModel()->currentIndex());
+                return;
+            }
+        }
+
+        // Now we have a category with at least one child, so select id
+        categoryIndex = feedIndex;
+        feedIndex = feedIndex.child(0, 0);
+    }
+    else
+        categoryIndex = feedIndex.parent();
+
+    // Store the row of the starting catogory
+    startingCategoryRow = categoryIndex.row();
+
+    while ((nextUnread = rssParser->getNextUnread(index)) <= 0)
+    {
+        // If we have an invalid feedIndex return
+        if (!feedIndex.isValid())
+        {
+            ui->feedTreeView->selectionModel()->select(startingFeedSelection, QItemSelectionModel::SelectCurrent);
+            on_feedTreeView_clicked(ui->feedTreeView->currentIndex());
+            ui->newsTableView->selectRow(startingNewsRow);
+            loadFeed (ui->newsTableView->selectionModel()->currentIndex());
+            return;
+        }
+
+        // Check if there is a category next in which to step, if there
+        // are no more feeds in this.
+        if (feedIndex.row() == feedModel->rowCount(categoryIndex) - 1)
+        {
+            // Continue to iterate over categories while we found a non
+            // empty one OR we arrive to the starting one.
+            do
+            {
+                if (categoryIndex.row() < feedModel->rowCount())
+                    categoryIndex = feedModel->index(categoryIndex.row() + 1, 0);
+                else
+                    categoryIndex = feedModel->index(0, 0);
+            } while (feedModel->rowCount(categoryIndex) == 0 &&
+                     categoryIndex.row() != startingCategoryRow);
+
+            // We have done a complete round
+            if (categoryIndex.row() == startingCategoryRow)
+            {
+                ui->feedTreeView->selectionModel()->select(startingFeedSelection, QItemSelectionModel::SelectCurrent);
+                on_feedTreeView_clicked(ui->feedTreeView->currentIndex());
+                ui->newsTableView->selectRow(startingNewsRow);
+                loadFeed (ui->newsTableView->selectionModel()->currentIndex());
+                return;
+            }
+
+            // Got the Feed and select the first element.
+            feedIndex = categoryIndex.child(0, 0);
+        }
+        else
+        {
+            // Otherwise step to the next feed
+            feedIndex = categoryIndex.child(feedIndex.row() + 1, 0);
+        }
+
+        ui->feedTreeView->selectionModel()->select(QItemSelection(feedIndex, feedIndex), QItemSelectionModel::SelectCurrent);
+        on_feedTreeView_clicked(feedIndex);
+        index = rssParser->index(0, 0);
+
+        // This feed may be unread, so in that case, read it.
+        if (rssParser->record(index.row()).value("read").toInt() == 0)
+        {
+            ui->newsTableView->selectRow(0);
+            loadFeed(index);
+            return;
+        }
+    }
+
+    // Selec the next unread news in the feed.
     if (nextUnread > 0)
     {
         ui->newsTableView->selectRow(nextUnread);
         loadFeed (ui->newsTableView->selectionModel()->currentIndex());
     }
 }
+
 
 void Larss::MainWindow::on_actionUpdate_this_feed_triggered()
 {
